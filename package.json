@@ -1,0 +1,80 @@
+{
+  "name": "vscode-kityminder-neo",
+  "displayName": "KityMinder Neo",
+  "description": "A minimal VS Code editor for KityMinder .km mindmap files with XMind import.",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "main": "./dist/extension.js",
+  "engines": {
+    "vscode": "^1.110.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCustomEditor:kityminder-neo.kmEditor",
+    "onCommand:kityminderNeo.importXmindToKm",
+    "onCommand:kityminderNeo.revealSourceJson"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "kityminderNeo.importXmindToKm",
+        "title": "KityMinder Neo: Import XMind to KM"
+      },
+      {
+        "command": "kityminderNeo.revealSourceJson",
+        "title": "KityMinder Neo: Open KM Source JSON"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "kityminderNeo.importXmindToKm",
+          "when": "resourceExtname == .xmind",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "kityminderNeo.importXmindToKm"
+        },
+        {
+          "command": "kityminderNeo.revealSourceJson"
+        }
+      ]
+    },
+    "customEditors": [
+      {
+        "viewType": "kityminder-neo.kmEditor",
+        "displayName": "KityMinder Mindmap",
+        "selector": [
+          {
+            "filenamePattern": "*.km"
+          }
+        ],
+        "priority": "default"
+      }
+    ]
+  },
+  "scripts": {
+    "clean": "rm -rf dist media/vendor",
+    "build": "node scripts/build.mjs",
+    "build:watch": "node scripts/build.mjs --watch",
+    "test": "vitest run",
+    "check": "npm run build && npm run test"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/vscode": "^1.110.0",
+    "@xmldom/xmldom": "^0.8.11",
+    "esbuild": "^0.27.4",
+    "fast-xml-parser": "^5.5.9",
+    "jszip": "^3.10.1",
+    "kity": "^2.0.4",
+    "kityminder-core": "^1.4.50",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.1"
+  }
+}
