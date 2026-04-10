@@ -1,35 +1,16 @@
 import { build, context } from 'esbuild';
-import { cp, mkdir, rm } from 'node:fs/promises';
+import { mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const distDir = path.join(rootDir, 'dist');
-const vendorDir = path.join(rootDir, 'media', 'vendor');
 const watchMode = process.argv.includes('--watch');
-
-async function copyVendorAssets() {
-  await mkdir(vendorDir, { recursive: true });
-
-  const copies = [
-    ['node_modules/kity/dist/kity.min.js', 'kity.min.js'],
-    ['node_modules/kityminder-core/dist/kityminder.core.min.js', 'kityminder.core.min.js'],
-    ['node_modules/kityminder-core/dist/kityminder.core.css', 'kityminder.core.css']
-  ];
-
-  await Promise.all(
-    copies.map(([from, to]) =>
-      cp(path.join(rootDir, from), path.join(vendorDir, to), { force: true })
-    )
-  );
-}
 
 async function prepare() {
   await rm(distDir, { recursive: true, force: true });
-  await rm(vendorDir, { recursive: true, force: true });
   await mkdir(distDir, { recursive: true });
-  await copyVendorAssets();
 }
 
 const sharedBuildOptions = {

@@ -37,7 +37,6 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
       enableScripts: true,
       localResourceRoots: [
         vscode.Uri.joinPath(this.context.extensionUri, 'dist'),
-        vscode.Uri.joinPath(this.context.extensionUri, 'media')
       ]
     };
     webview.html = this.getHtml(webview, document);
@@ -108,20 +107,11 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
 
   private getHtml(webview: vscode.Webview, document: vscode.TextDocument): string {
     const nonce = getNonce();
-    const webviewScriptUri = webview.asWebviewUri(
+    const scriptUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview.js')
     );
-    const webviewStylesUri = webview.asWebviewUri(
+    const stylesUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this.context.extensionUri, 'dist', 'webview.css')
-    );
-    const kityScriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'media', 'vendor', 'kity.min.js')
-    );
-    const kityMinderScriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'media', 'vendor', 'kityminder.core.min.js')
-    );
-    const kityMinderStylesUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this.context.extensionUri, 'media', 'vendor', 'kityminder.core.css')
     );
 
     return `<!DOCTYPE html>
@@ -134,87 +124,103 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(document.fileName)}</title>
-    <link rel="stylesheet" href="${kityMinderStylesUri}" />
-    <link rel="stylesheet" href="${webviewStylesUri}" />
+    <link rel="stylesheet" href="${stylesUri}" />
   </head>
   <body>
-    <div id="app" class="app-shell">
-      <div class="topbar">
-        <div class="brand">
-          <div class="brand-mark">KM</div>
-          <div>
-            <div class="brand-title">KityMinder Neo</div>
-            <div class="brand-subtitle" id="filename"></div>
+    <div class="app">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-brand">
+          <div class="logo">KM</div>
+          <div class="header-info">
+            <div class="header-title">KityMinder Neo</div>
+            <div class="header-filename" id="filename"></div>
           </div>
         </div>
-        <div class="toolbar">
-          <button id="btn-add-child" class="toolbar-btn">子节点</button>
-          <button id="btn-add-sibling" class="toolbar-btn">同级</button>
-          <button id="btn-add-parent" class="toolbar-btn">父节点</button>
-          <button id="btn-delete" class="toolbar-btn danger">删除</button>
-          <span class="toolbar-separator"></span>
-          <button id="btn-expand" class="toolbar-btn">展开</button>
-          <button id="btn-collapse" class="toolbar-btn">收起</button>
-          <button id="btn-expand-all" class="toolbar-btn">展开全部</button>
-          <span class="toolbar-separator"></span>
-          <button id="btn-template-default" class="toolbar-btn template-btn" data-template="default">默认</button>
-          <button id="btn-template-right" class="toolbar-btn template-btn" data-template="right">右侧</button>
-          <button id="btn-template-structure" class="toolbar-btn template-btn" data-template="structure">结构</button>
-          <button id="btn-reset-layout" class="toolbar-btn">整理布局</button>
-          <button id="btn-position-mode" class="toolbar-btn accent">位置模式</button>
+        <div class="header-actions">
+          <button id="btn-open-source" class="btn link">源码 JSON</button>
+        </div>
+      </header>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <span class="toolbar-label">节点</span>
+          <button id="btn-add-child" class="btn">子节点</button>
+          <button id="btn-add-sibling" class="btn">同级</button>
+          <button id="btn-add-parent" class="btn">父级</button>
+          <button id="btn-delete" class="btn danger">删除</button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+          <span class="toolbar-label">展开</span>
+          <button id="btn-expand" class="btn">展开</button>
+          <button id="btn-collapse" class="btn">收起</button>
+          <button id="btn-level-1" class="btn">1</button>
+          <button id="btn-level-2" class="btn">2</button>
+          <button id="btn-level-3" class="btn">3</button>
+          <button id="btn-expand-all" class="btn">全部</button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+          <span class="toolbar-label">布局</span>
+          <button class="btn tpl-btn" data-template="default">脑图</button>
+          <button class="btn tpl-btn" data-template="right">右展</button>
+          <button class="btn tpl-btn" data-template="structure">组织</button>
+          <button id="btn-reset-layout" class="btn">整理</button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+          <button id="btn-center" class="btn">居中</button>
+          <button id="btn-zoom-fit" class="btn">适应</button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+          <button id="btn-undo" class="btn" title="撤销 (Ctrl+Z)">撤销</button>
+          <button id="btn-redo" class="btn" title="重做 (Ctrl+Shift+Z)">重做</button>
         </div>
       </div>
 
-      <div id="warning-banner" class="banner hidden"></div>
+      <!-- Warning banner -->
+      <div id="warning-banner" class="warning-banner hidden"></div>
 
-      <div class="workspace">
-        <div class="canvas-panel">
-          <div class="panel-header">
-            <div>思维导图</div>
-            <div class="panel-actions">
-              <button id="btn-center" class="link-btn">居中</button>
-              <button id="btn-open-source" class="link-btn">源码 JSON</button>
-            </div>
-          </div>
-          <div id="mindmap-container" class="mindmap-container"></div>
+      <!-- Main -->
+      <div class="main-content">
+        <div class="canvas-area">
+          <div id="mindmap-container" class="canvas-container"></div>
           <div id="error-overlay" class="error-overlay hidden">
             <div class="error-card">
-              <div class="error-title">无法在图形编辑器中打开此文件</div>
-              <p id="error-message" class="error-message"></p>
-              <button id="btn-open-source-error" class="toolbar-btn">使用文本编辑器打开</button>
+              <h3>无法在图形编辑器中打开此文件</h3>
+              <p id="error-message"></p>
+              <button id="btn-open-source-error" class="btn accent">使用文本编辑器打开</button>
             </div>
           </div>
         </div>
 
-        <aside class="sidebar">
-          <div class="panel-header">节点属性</div>
-          <div class="field-group">
-            <label class="field-label" for="node-title">标题</label>
-            <input id="node-title" class="text-field" type="text" placeholder="选择节点后编辑标题" />
+        <aside class="sidebar" id="sidebar">
+          <div class="sidebar-header">
+            <span>节点属性</span>
+            <div class="sidebar-meta" id="selection-meta">未选择节点</div>
           </div>
-          <div class="field-group grow">
-            <label class="field-label" for="node-note">备注</label>
-            <textarea
-              id="node-note"
-              class="text-area"
-              placeholder="支持 Markdown 文本，空内容会移除备注"
-            ></textarea>
+          <div class="sidebar-content">
+            <div class="field">
+              <label for="node-title">标题</label>
+              <input id="node-title" type="text" placeholder="选择节点后编辑标题" disabled />
+            </div>
+            <div class="field field-grow">
+              <label for="node-note">备注</label>
+              <textarea
+                id="node-note"
+                placeholder="支持 Markdown 格式，留空移除备注"
+                disabled
+              ></textarea>
+            </div>
           </div>
-          <div class="panel-header">查看</div>
-          <div class="view-grid">
-            <button id="btn-level-1" class="toolbar-btn">一级</button>
-            <button id="btn-level-2" class="toolbar-btn">二级</button>
-            <button id="btn-level-3" class="toolbar-btn">三级</button>
-            <button id="btn-level-all" class="toolbar-btn">全部</button>
-          </div>
-          <div class="meta-block" id="selection-meta">未选择节点</div>
         </aside>
       </div>
     </div>
 
-    <script nonce="${nonce}" src="${kityScriptUri}"></script>
-    <script nonce="${nonce}" src="${kityMinderScriptUri}"></script>
-    <script nonce="${nonce}" src="${webviewScriptUri}"></script>
+    <script nonce="${nonce}" src="${scriptUri}"></script>
   </body>
 </html>`;
   }
