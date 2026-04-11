@@ -1,24 +1,50 @@
-/* ── Tokens ────────────────────────────────────────────────────────── */
+/* ── Google Fonts ──────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..800;1,9..40,300..800&display=swap');
+
+/* ── Catppuccin Latte Tokens ──────────────────────────────────────── */
 :root {
   color-scheme: light;
-  --bg: #f4f6f8;
-  --surface: rgba(255, 255, 255, 0.88);
-  --surface-solid: #ffffff;
-  --border: rgba(15, 23, 42, 0.08);
-  --border-strong: rgba(15, 23, 42, 0.14);
-  --text: #0f172a;
-  --text-muted: #64748b;
-  --accent: #0d9488;
-  --accent-hover: #0f766e;
-  --danger: #dc2626;
-  --warn-bg: #fffbeb;
-  --warn-text: #92400e;
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 20px 48px rgba(15, 23, 42, 0.10);
+
+  --ctp-rosewater: #dc8a78;
+  --ctp-flamingo: #dd7878;
+  --ctp-pink: #ea76cb;
+  --ctp-mauve: #8839ef;
+  --ctp-red: #d20f39;
+  --ctp-maroon: #e64553;
+  --ctp-peach: #fe640b;
+  --ctp-yellow: #df8e1d;
+  --ctp-green: #40a02b;
+  --ctp-teal: #179299;
+  --ctp-sky: #04a5e5;
+  --ctp-sapphire: #209fb5;
+  --ctp-blue: #1e66f5;
+  --ctp-lavender: #7287fd;
+
+  --ctp-text: #4c4f69;
+  --ctp-subtext1: #5c5f77;
+  --ctp-subtext0: #6c6f85;
+  --ctp-overlay2: #7c7f93;
+  --ctp-overlay1: #8c8fa1;
+  --ctp-overlay0: #9ca0b0;
+  --ctp-surface2: #acb0be;
+  --ctp-surface1: #bcc0cc;
+  --ctp-surface0: #ccd0da;
+  --ctp-base: #eff1f5;
+  --ctp-mantle: #e6e9ef;
+  --ctp-crust: #dce0e8;
+
+  --font-ui: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(76, 79, 105, 0.06);
+  --shadow-md: 0 4px 12px rgba(76, 79, 105, 0.08);
+  --shadow-lg: 0 12px 32px rgba(76, 79, 105, 0.12);
 }
 
 /* ── Reset ─────────────────────────────────────────────────────────── */
@@ -35,10 +61,11 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: var(--bg);
-  color: var(--text);
-  font: 13px/1.5 "IBM Plex Sans", "Inter", "PingFang SC", "Hiragino Sans GB", system-ui, sans-serif;
+  background: var(--ctp-base);
+  color: var(--ctp-text);
+  font: 13px/1.5 var(--font-ui);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 button,
@@ -60,10 +87,11 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 10px 16px;
-  background: var(--surface-solid);
-  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  height: 40px;
+  padding: 0 14px;
+  background: var(--ctp-mantle);
+  border-bottom: 1px solid var(--ctp-surface0);
   flex-shrink: 0;
 }
 
@@ -77,30 +105,34 @@ textarea {
 .logo {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--ctp-blue), var(--ctp-lavender));
   color: #fff;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   flex-shrink: 0;
 }
 
 .header-info {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   min-width: 0;
 }
 
 .header-title {
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .header-filename {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--ctp-subtext0);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -108,7 +140,7 @@ textarea {
 
 .header-actions {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
@@ -116,35 +148,41 @@ textarea {
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  background: var(--surface-solid);
-  border-bottom: 1px solid var(--border);
+  gap: 2px;
+  height: 36px;
+  padding: 0 10px;
+  background: var(--ctp-mantle);
+  border-bottom: 1px solid var(--ctp-surface0);
   overflow-x: auto;
+  overflow-y: hidden;
   flex-shrink: 0;
+}
+
+.toolbar::-webkit-scrollbar {
+  height: 0;
 }
 
 .toolbar-group {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
 }
 
 .toolbar-label {
   font-size: 10px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--ctp-overlay0);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 0 6px 0 4px;
+  padding: 0 5px 0 3px;
   user-select: none;
   white-space: nowrap;
 }
 
 .toolbar-divider {
   width: 1px;
-  height: 20px;
-  background: var(--border-strong);
+  height: 18px;
+  background: var(--ctp-surface0);
   margin: 0 6px;
   flex-shrink: 0;
 }
@@ -156,63 +194,124 @@ textarea {
   justify-content: center;
   gap: 4px;
   height: 28px;
-  padding: 0 10px;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  background: var(--surface-solid);
-  color: var(--text);
+  min-width: 28px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ctp-text);
   cursor: pointer;
   font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  transition: background 100ms, border-color 100ms, transform 80ms;
+  transition: background 100ms ease, border-color 100ms ease, color 100ms ease;
   user-select: none;
 }
 
+.btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  stroke-width: 1.75;
+}
+
 .btn:hover {
-  background: #f1f5f9;
-  border-color: rgba(15, 23, 42, 0.22);
+  background: var(--ctp-surface0);
 }
 
 .btn:active {
-  transform: scale(0.97);
+  background: var(--ctp-surface1);
 }
 
 .btn.active {
-  background: rgba(13, 148, 136, 0.12);
-  border-color: rgba(13, 148, 136, 0.35);
-  color: var(--accent);
+  background: rgba(30, 102, 245, 0.1);
+  color: var(--ctp-blue);
+  border-color: rgba(30, 102, 245, 0.2);
 }
 
 .btn.danger {
-  color: var(--danger);
+  color: var(--ctp-red);
 }
 
 .btn.danger:hover {
-  background: #fef2f2;
-  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(210, 15, 57, 0.08);
+}
+
+.btn.danger:active {
+  background: rgba(210, 15, 57, 0.14);
 }
 
 .btn.accent {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--ctp-blue);
+  border-color: var(--ctp-blue);
   color: #fff;
 }
 
 .btn.accent:hover {
-  background: var(--accent-hover);
+  background: #1a5be0;
 }
 
 .btn.link {
   border: none;
   background: transparent;
-  color: var(--accent);
+  color: var(--ctp-blue);
   padding: 0 6px;
+  font-weight: 500;
 }
 
 .btn.link:hover {
   text-decoration: underline;
   background: transparent;
+}
+
+/* ── Icon-only buttons ────────────────────────────────────────────── */
+.icon-btn {
+  padding: 0;
+  width: 28px;
+}
+
+/* ── Template buttons ─────────────────────────────────────────────── */
+.tpl-btn {
+  font-weight: 500;
+}
+
+/* ── Flavor buttons (pill with color dot) ─────────────────────────── */
+.flavor-btn {
+  border-radius: var(--radius-pill);
+  padding: 0 10px 0 6px;
+  font-weight: 500;
+  gap: 5px;
+}
+
+.flavor-btn::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.flavor-btn[data-flavor="latte"]::before {
+  background: #e6c9a1;
+}
+
+.flavor-btn[data-flavor="frappe"]::before {
+  background: #8caaee;
+}
+
+.flavor-btn[data-flavor="macchiato"]::before {
+  background: #6e738d;
+}
+
+.flavor-btn[data-flavor="mocha"]::before {
+  background: #313244;
+}
+
+.flavor-btn.active {
+  background: rgba(30, 102, 245, 0.1);
+  color: var(--ctp-blue);
+  border-color: rgba(30, 102, 245, 0.2);
 }
 
 /* ── Main content ──────────────────────────────────────────────────── */
@@ -234,10 +333,6 @@ textarea {
 .canvas-container {
   flex: 1;
   min-height: 0;
-  background:
-    radial-gradient(circle, rgba(15, 23, 42, 0.03) 1px, transparent 1px),
-    linear-gradient(180deg, #fafbfc 0%, var(--bg) 100%);
-  background-size: 20px 20px, 100% 100%;
 }
 
 .canvas-container .x6-graph {
@@ -247,24 +342,25 @@ textarea {
 
 /* ── Sidebar ───────────────────────────────────────────────────────── */
 .sidebar {
-  width: 280px;
+  width: 260px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: var(--surface-solid);
-  border-left: 1px solid var(--border);
+  background: var(--ctp-mantle);
+  border-left: 1px solid var(--ctp-surface0);
 }
 
 .sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px 8px;
-  font-size: 12px;
+  padding: 10px 14px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
+  color: var(--ctp-subtext0);
+  border-bottom: 1px solid var(--ctp-surface0);
   flex-shrink: 0;
 }
 
@@ -273,6 +369,7 @@ textarea {
   font-size: 11px;
   text-transform: none;
   letter-spacing: 0;
+  color: var(--ctp-overlay0);
 }
 
 .sidebar-content {
@@ -280,7 +377,7 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 4px 14px 14px;
+  padding: 12px 14px;
   min-height: 0;
 }
 
@@ -292,9 +389,9 @@ textarea {
 }
 
 .field label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--ctp-subtext0);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -302,45 +399,49 @@ textarea {
 .field input,
 .field textarea {
   width: 100%;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--ctp-surface0);
   border-radius: var(--radius-sm);
-  background: var(--bg);
-  padding: 8px 10px;
+  background: var(--ctp-base);
+  padding: 6px 8px;
+  font-size: 12px;
   resize: none;
-  transition: border-color 100ms;
+  transition: border-color 100ms ease;
 }
 
 .field input:focus,
 .field textarea:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--ctp-blue);
+  box-shadow: 0 0 0 2px rgba(30, 102, 245, 0.1);
 }
 
 .field input:disabled,
 .field textarea:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .field-grow {
   flex: 1;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .field-grow textarea {
   flex: 1;
-  min-height: 120px;
+  min-height: 100px;
 }
 
 /* ── Banners ───────────────────────────────────────────────────────── */
 .warning-banner {
-  margin: 8px 12px 0;
-  padding: 10px 14px;
+  margin: 6px 10px 0;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
-  background: var(--warn-bg);
-  color: var(--warn-text);
+  background: rgba(223, 142, 29, 0.08);
+  color: var(--ctp-peach);
   font-size: 12px;
-  border: 1px solid rgba(146, 64, 14, 0.12);
+  border: 1px solid rgba(223, 142, 29, 0.15);
 }
 
 .warning-banner.hidden {
@@ -349,7 +450,7 @@ textarea {
 
 .warning-banner strong {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .warning-banner ul {
@@ -363,8 +464,9 @@ textarea {
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(244, 246, 248, 0.96);
+  background: rgba(239, 241, 245, 0.95);
   z-index: 50;
+  backdrop-filter: blur(4px);
 }
 
 .error-overlay.hidden {
@@ -372,25 +474,109 @@ textarea {
 }
 
 .error-card {
-  max-width: 440px;
-  padding: 28px 32px;
-  border-radius: var(--radius-lg);
-  background: var(--surface-solid);
+  max-width: 400px;
+  padding: 24px 28px;
+  border-radius: var(--radius-md);
+  background: var(--ctp-mantle);
+  border: 1px solid var(--ctp-surface0);
   box-shadow: var(--shadow-lg);
   text-align: center;
 }
 
 .error-card h3 {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .error-card p {
-  color: var(--text-muted);
-  margin-bottom: 20px;
+  color: var(--ctp-subtext0);
+  margin-bottom: 16px;
   white-space: pre-wrap;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ── Canvas container positioning ──────────────────────────────────── */
+.canvas-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── Inline edit overlay ───────────────────────────────────────────── */
+.km-edit-overlay {
+  position: absolute;
+  z-index: 100;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.km-edit-input {
+  border: 2px solid var(--ctp-blue);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: "IBM Plex Sans", "PingFang SC", system-ui, sans-serif;
+  text-align: center;
+  outline: none;
+  background: #fff;
+  color: var(--ctp-text);
+  box-shadow: 0 2px 12px rgba(30, 102, 245, 0.18), 0 0 0 3px rgba(30, 102, 245, 0.08);
+  min-width: 80px;
+  max-width: 420px;
+  box-sizing: border-box;
+}
+
+/* ── Drag ghost ────────────────────────────────────────────────────── */
+.km-drag-ghost {
+  position: fixed;
+  z-index: 10000;
+  padding: 5px 14px;
+  border-radius: 8px;
+  background: var(--ctp-blue);
+  color: #fff;
+  font-family: "IBM Plex Sans", "PingFang SC", system-ui, sans-serif;
   font-size: 13px;
+  font-weight: 500;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 4px 16px rgba(30, 102, 245, 0.3);
+  opacity: 0.92;
+}
+
+/* ── Drop indicator ────────────────────────────────────────────────── */
+.km-drop-indicator {
+  position: absolute;
+  z-index: 99;
+  pointer-events: none;
+  transition: all 60ms ease;
+}
+
+.km-drop-indicator--child {
+  border: 2px dashed var(--ctp-blue);
+  border-radius: 8px;
+  background: rgba(30, 102, 245, 0.06);
+}
+
+.km-drop-indicator--line {
+  height: 3px;
+  background: var(--ctp-blue);
+  border-radius: 2px;
+}
+
+.km-drop-indicator--line::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: -3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ctp-blue);
 }
 
 /* ── Responsive ────────────────────────────────────────────────────── */
@@ -402,8 +588,8 @@ textarea {
   .sidebar {
     width: 100%;
     border-left: none;
-    border-top: 1px solid var(--border);
-    max-height: 240px;
+    border-top: 1px solid var(--ctp-surface0);
+    max-height: 220px;
   }
 
   .toolbar-label {

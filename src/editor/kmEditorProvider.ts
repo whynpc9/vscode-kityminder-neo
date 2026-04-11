@@ -120,7 +120,7 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
     <meta charset="UTF-8" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; img-src ${webview.cspSource} https: data:; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' 'unsafe-eval'; font-src ${webview.cspSource};"
+      content="default-src 'none'; img-src ${webview.cspSource} https: data:; style-src ${webview.cspSource} 'unsafe-inline' https://fonts.googleapis.com; script-src 'nonce-${nonce}' 'unsafe-eval'; font-src ${webview.cspSource} https://fonts.gstatic.com;"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(document.fileName)}</title>
@@ -138,7 +138,7 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
           </div>
         </div>
         <div class="header-actions">
-          <button id="btn-open-source" class="btn link">源码 JSON</button>
+          <button id="btn-open-source" class="btn link icon-btn" title="源码 JSON"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg></button>
         </div>
       </header>
 
@@ -146,16 +146,16 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
       <div class="toolbar">
         <div class="toolbar-group">
           <span class="toolbar-label">节点</span>
-          <button id="btn-add-child" class="btn">子节点</button>
-          <button id="btn-add-sibling" class="btn">同级</button>
-          <button id="btn-add-parent" class="btn">父级</button>
-          <button id="btn-delete" class="btn danger">删除</button>
+          <button id="btn-add-child" class="btn icon-btn" title="添加子节点"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+          <button id="btn-add-sibling" class="btn icon-btn" title="添加同级节点"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></svg></button>
+          <button id="btn-add-parent" class="btn icon-btn" title="添加父节点"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg></button>
+          <button id="btn-delete" class="btn danger icon-btn" title="删除节点"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
         </div>
         <div class="toolbar-divider"></div>
         <div class="toolbar-group">
           <span class="toolbar-label">展开</span>
-          <button id="btn-expand" class="btn">展开</button>
-          <button id="btn-collapse" class="btn">收起</button>
+          <button id="btn-expand" class="btn icon-btn" title="展开"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></button>
+          <button id="btn-collapse" class="btn icon-btn" title="收起"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 20 5-5 5 5"/><path d="m7 4 5 5 5-5"/></svg></button>
           <button id="btn-level-1" class="btn">1</button>
           <button id="btn-level-2" class="btn">2</button>
           <button id="btn-level-3" class="btn">3</button>
@@ -167,17 +167,25 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
           <button class="btn tpl-btn" data-template="default">脑图</button>
           <button class="btn tpl-btn" data-template="right">右展</button>
           <button class="btn tpl-btn" data-template="structure">组织</button>
-          <button id="btn-reset-layout" class="btn">整理</button>
+          <button id="btn-reset-layout" class="btn icon-btn" title="整理布局"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></button>
         </div>
         <div class="toolbar-divider"></div>
         <div class="toolbar-group">
-          <button id="btn-center" class="btn">居中</button>
-          <button id="btn-zoom-fit" class="btn">适应</button>
+          <span class="toolbar-label">配色</span>
+          <button class="btn flavor-btn" data-flavor="latte">Latte</button>
+          <button class="btn flavor-btn" data-flavor="frappe">Frappé</button>
+          <button class="btn flavor-btn" data-flavor="macchiato">Macchiato</button>
+          <button class="btn flavor-btn" data-flavor="mocha">Mocha</button>
         </div>
         <div class="toolbar-divider"></div>
         <div class="toolbar-group">
-          <button id="btn-undo" class="btn" title="撤销 (Ctrl+Z)">撤销</button>
-          <button id="btn-redo" class="btn" title="重做 (Ctrl+Shift+Z)">重做</button>
+          <button id="btn-center" class="btn icon-btn" title="居中"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/></svg></button>
+          <button id="btn-zoom-fit" class="btn icon-btn" title="适应画布"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+          <button id="btn-undo" class="btn icon-btn" title="撤销 (Ctrl+Z)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></svg></button>
+          <button id="btn-redo" class="btn icon-btn" title="重做 (Ctrl+Shift+Z)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"/></svg></button>
         </div>
       </div>
 

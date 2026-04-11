@@ -2,7 +2,7 @@ import './styles.css';
 
 import { parseKmDocument, stringifyKmDocument } from '../shared/km';
 import type { HostToWebviewMessage, WebviewToHostMessage } from '../shared/protocol';
-import { MindmapEngine, type MindmapNode, type TemplateType } from './mindmap-engine';
+import { MindmapEngine, type MindmapNode, type TemplateType, type CatppuccinFlavor } from './mindmap-engine';
 
 declare const acquireVsCodeApi: () => {
   postMessage(message: WebviewToHostMessage): void;
@@ -22,6 +22,9 @@ class App {
   private readonly selectionMeta = this.el<HTMLDivElement>('selection-meta');
   private readonly templateButtons = Array.from(
     document.querySelectorAll<HTMLButtonElement>('.tpl-btn'),
+  );
+  private readonly flavorButtons = Array.from(
+    document.querySelectorAll<HTMLButtonElement>('.flavor-btn'),
   );
 
   private engine!: MindmapEngine;
@@ -64,15 +67,61 @@ class App {
 
     window.addEventListener('keydown', (e) => {
       const mod = e.ctrlKey || e.metaKey;
+      const target = e.target as HTMLElement;
+      const isEditInput = target.classList.contains('km-edit-input');
+      const isSidebarInput = !isEditInput && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
+
+      if (isEditInput) return;
+
+      if (this.engine.isEditing()) return;
+
+      if (isSidebarInput) {
+        if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); this.engine.undo(); }
+        else if (mod && (e.key === 'Z' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); this.engine.redo(); }
+        else if (mod && e.key === 'y') { e.preventDefault(); this.engine.redo(); }
+        return;
+      }
+
       if (mod && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        this.engine.undo();
+        e.preventDefault(); this.engine.undo();
       } else if (mod && (e.key === 'Z' || (e.key === 'z' && e.shiftKey))) {
-        e.preventDefault();
-        this.engine.redo();
+        e.preventDefault(); this.engine.redo();
       } else if (mod && e.key === 'y') {
+        e.preventDefault(); this.engine.redo();
+      } else if (mod && e.key === 'c') {
+        e.preventDefault(); void this.engine.copySelected();
+      } else if (mod && e.key === 'x') {
+        e.preventDefault(); void this.engine.cutSelected();
+      } else if (mod && e.key === 'v') {
+        e.preventDefault(); void this.engine.pasteAsChild();
+      } else if (e.key === 'Tab') {
+        e.preventDefault(); this.engine.addChildAndEdit();
+      } else if (e.key === 'Enter') {
+        e.preventDefault(); this.engine.addSiblingAndEdit();
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault(); this.engine.removeSelected();
+      } else if (e.key === 'F2') {
+        e.preventDefault(); this.engine.startEditing();
+      } else if (e.key === ' ') {
+        e.preventDefault(); this.engine.toggleCollapse();
+      } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        this.engine.redo();
+        if (e.altKey) this.engine.moveNodeUp();
+        else if (this.engine.template === 'structure') this.engine.navigateToParent();
+        else this.engine.navigateUp();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (e.altKey) this.engine.moveNodeDown();
+        else if (this.engine.template === 'structure') this.engine.navigateToChild();
+        else this.engine.navigateDown();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (this.engine.template === 'structure') this.engine.navigateUp();
+        else this.engine.navigateLeft();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (this.engine.template === 'structure') this.engine.navigateDown();
+        else this.engine.navigateRight();
       }
     });
 
@@ -83,6 +132,16 @@ class App {
         this.updateTemplateButtons();
       });
     }
+
+    for (const b of this.flavorButtons) {
+      b.addEventListener('click', () => {
+        const f = b.dataset.flavor as CatppuccinFlavor | undefined;
+        if (f) this.engine.setFlavor(f);
+        this.updateFlavorButtons();
+      });
+    }
+
+    this.engine.onFlavorChange = () => this.updateFlavorButtons();
 
     let titleTimer: number | undefined;
     this.titleInput.addEventListener('input', () => {
@@ -132,6 +191,7 @@ class App {
       this.engine.importDocument(doc);
       this.currentSerialized = stringifyKmDocument(this.engine.exportDocument());
       this.updateTemplateButtons();
+      this.updateFlavorButtons();
     } catch (error) {
       this.hasValidDocument = false;
       this.showError(error instanceof Error ? error.message : String(error));
@@ -164,6 +224,13 @@ class App {
     const cur = this.engine.template;
     for (const b of this.templateButtons) {
       b.classList.toggle('active', b.dataset.template === cur);
+    }
+  }
+
+  private updateFlavorButtons() {
+    const cur = this.engine.flavor;
+    for (const b of this.flavorButtons) {
+      b.classList.toggle('active', b.dataset.flavor === cur);
     }
   }
 
@@ -230,4 +297,7 @@ function esc(v: string): string {
     .replaceAll("'", '&#39;');
 }
 
-new App().bootstrap();
+const __app = new App();
+__app.bootstrap();
+(window as any).__app__ = __app;
+(window as any).__kmEngine = __app.engine;
