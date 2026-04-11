@@ -45,6 +45,24 @@
         }
       ]
     },
+    "configuration": {
+      "title": "KityMinder Neo",
+      "properties": {
+        "kityminderNeo.saveExpandState": {
+          "type": "string",
+          "enum": ["preserve", "expandAll", "level1", "level2", "level3"],
+          "enumDescriptions": [
+            "保留当前展开/收缩状态（默认行为）",
+            "保存时全部展开（移除所有 expandState）",
+            "保存时展开到第 1 层级",
+            "保存时展开到第 2 层级",
+            "保存时展开到第 3 层级"
+          ],
+          "default": "preserve",
+          "markdownDescription": "控制 `.km` 文件保存时如何处理节点的展开/收缩状态。\n\n选择 `preserve` 以外的值时，编辑器内仍可自由展开/收缩节点，但写入文件的 JSON 会按照此规则规范化 `expandState`，避免展开状态的变更出现在 git diff 中。"
+        }
+      }
+    },
     "customEditors": [
       {
         "viewType": "kityminder-neo.kmEditor",

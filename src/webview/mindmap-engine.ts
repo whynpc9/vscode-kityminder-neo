@@ -15,99 +15,40 @@ export interface MindmapNode {
 }
 
 export type TemplateType = 'default' | 'right' | 'structure';
-export type CatppuccinFlavor = 'latte' | 'frappe' | 'macchiato' | 'mocha';
+export type SaveExpandState = 'preserve' | 'expandAll' | 'level1' | 'level2' | 'level3';
 
 interface DropTarget {
   type: 'child' | 'before' | 'after';
   targetId: string;
 }
 
-// ── Catppuccin palette ───────────────────────────────────────────────
-
-interface CatppuccinColors {
-  rosewater: string; flamingo: string; pink: string; mauve: string;
-  red: string; maroon: string; peach: string; yellow: string;
-  green: string; teal: string; sky: string; sapphire: string;
-  blue: string; lavender: string;
-  text: string; subtext1: string; subtext0: string;
-  overlay2: string; overlay1: string; overlay0: string;
-  surface2: string; surface1: string; surface0: string;
-  base: string; mantle: string; crust: string;
+export interface SearchResult {
+  nodeId: string;
+  titleMatch: boolean;
+  noteMatch: boolean;
 }
 
-const CATPPUCCIN: Record<CatppuccinFlavor, CatppuccinColors> = {
-  latte: {
-    rosewater: '#dc8a78', flamingo: '#dd7878', pink: '#ea76cb', mauve: '#8839ef',
-    red: '#d20f39', maroon: '#e64553', peach: '#fe640b', yellow: '#df8e1d',
-    green: '#40a02b', teal: '#179299', sky: '#04a5e5', sapphire: '#209fb5',
-    blue: '#1e66f5', lavender: '#7287fd',
-    text: '#4c4f69', subtext1: '#5c5f77', subtext0: '#6c6f85',
-    overlay2: '#7c7f93', overlay1: '#8c8fa1', overlay0: '#9ca0b0',
-    surface2: '#acb0be', surface1: '#bcc0cc', surface0: '#ccd0da',
-    base: '#eff1f5', mantle: '#e6e9ef', crust: '#dce0e8',
-  },
-  frappe: {
-    rosewater: '#f2d5cf', flamingo: '#eebebe', pink: '#f4b8e4', mauve: '#ca9ee6',
-    red: '#e78284', maroon: '#ea999c', peach: '#ef9f76', yellow: '#e5c890',
-    green: '#a6d189', teal: '#81c8be', sky: '#99d1db', sapphire: '#85c1dc',
-    blue: '#8caaee', lavender: '#babbf1',
-    text: '#c6d0f5', subtext1: '#b5bfe2', subtext0: '#a5adce',
-    overlay2: '#949cbb', overlay1: '#838ba7', overlay0: '#737994',
-    surface2: '#626880', surface1: '#51576d', surface0: '#414559',
-    base: '#303446', mantle: '#292c3c', crust: '#232634',
-  },
-  macchiato: {
-    rosewater: '#f4dbd6', flamingo: '#f0c6c6', pink: '#f5bde6', mauve: '#c6a0f6',
-    red: '#ed8796', maroon: '#ee99a0', peach: '#f5a97f', yellow: '#eed49f',
-    green: '#a6da95', teal: '#8bd5ca', sky: '#91d7e3', sapphire: '#7dc4e4',
-    blue: '#8aadf4', lavender: '#b7bdf8',
-    text: '#cad3f5', subtext1: '#b8c0e0', subtext0: '#a5adcb',
-    overlay2: '#939ab7', overlay1: '#8087a2', overlay0: '#6e738d',
-    surface2: '#5b6078', surface1: '#494d64', surface0: '#363a4f',
-    base: '#24273a', mantle: '#1e2030', crust: '#181926',
-  },
-  mocha: {
-    rosewater: '#f5e0dc', flamingo: '#f2cdcd', pink: '#f5c2e7', mauve: '#cba6f7',
-    red: '#f38ba8', maroon: '#eba0ac', peach: '#fab387', yellow: '#f9e2af',
-    green: '#a6e3a1', teal: '#94e2d5', sky: '#89dceb', sapphire: '#74c7ec',
-    blue: '#89b4fa', lavender: '#b4befe',
-    text: '#cdd6f4', subtext1: '#bac2de', subtext0: '#a6adc8',
-    overlay2: '#9399b2', overlay1: '#7f849c', overlay0: '#6c7086',
-    surface2: '#585b70', surface1: '#45475a', surface0: '#313244',
-    base: '#1e1e2e', mantle: '#181825', crust: '#11111b',
-  },
+// ── Warm palette (Claude / Anthropic inspired) ───────────────────────
+
+const P = {
+  nearBlack:   '#141413',
+  terracotta:  '#c96442',
+  coral:       '#d97757',
+  parchment:   '#f5f4ed',
+  ivory:       '#faf9f5',
+  warmSand:    '#e8e6dc',
+  darkSurface: '#30302e',
+  charcoal:    '#4d4c48',
+  olive:       '#5e5d59',
+  stone:       '#87867f',
+  darkWarm:    '#3d3d3a',
+  warmSilver:  '#b0aea5',
+  borderCream: '#f0eee6',
+  ringWarm:    '#d1cfc5',
+  ringDeep:    '#c2c0b6',
+  focusBlue:   '#3898ec',
+  errorRed:    '#b53333',
 };
-
-const FLAVOR_LABELS: Record<CatppuccinFlavor, string> = {
-  latte: 'Latte', frappe: 'Frappé', macchiato: 'Macchiato', mocha: 'Mocha',
-};
-
-function isLightFlavor(f: CatppuccinFlavor): boolean {
-  return f === 'latte';
-}
-
-function depthAccentColors(p: CatppuccinColors): string[] {
-  return [p.blue, p.green, p.peach, p.mauve, p.pink, p.teal, p.sapphire, p.yellow, p.red, p.lavender, p.flamingo, p.sky];
-}
-
-function hexToRgb(hex: string): [number, number, number] {
-  const n = parseInt(hex.slice(1), 16);
-  return [(n >> 16) & 0xff, (n >> 8) & 0xff, n & 0xff];
-}
-
-function mixColors(c1: string, c2: string, t: number): string {
-  const [r1, g1, b1] = hexToRgb(c1);
-  const [r2, g2, b2] = hexToRgb(c2);
-  const r = Math.round(r1 + (r2 - r1) * t);
-  const g = Math.round(g1 + (g2 - g1) * t);
-  const b = Math.round(b1 + (b2 - b1) * t);
-  return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`;
-}
-
-function withAlpha(hex: string, alpha: number): string {
-  const a = Math.round(alpha * 255).toString(16).padStart(2, '0');
-  return `${hex}${a}`;
-}
 
 // ── Clipboard format ──────────────────────────────────────────────────
 
@@ -127,7 +68,7 @@ function textWidth(text: string, size: number, weight: string | number = 400): n
   if (!_ctx) {
     _ctx = document.createElement('canvas').getContext('2d')!;
   }
-  _ctx.font = `${weight} ${size}px "IBM Plex Sans","PingFang SC",system-ui,sans-serif`;
+  _ctx.font = `${weight} ${size}px system-ui,-apple-system,"PingFang SC","Segoe UI",sans-serif`;
   return Math.ceil(_ctx.measureText(text).width);
 }
 
@@ -142,7 +83,7 @@ function wrapText(
   if (!_ctx) {
     _ctx = document.createElement('canvas').getContext('2d')!;
   }
-  _ctx.font = `${weight} ${size}px "IBM Plex Sans","PingFang SC",system-ui,sans-serif`;
+  _ctx.font = `${weight} ${size}px system-ui,-apple-system,"PingFang SC","Segoe UI",sans-serif`;
   const lines: string[] = [];
   let currentLine = '';
   let currentWidth = 0;
@@ -194,10 +135,10 @@ export class MindmapEngine {
   private parentMap = new Map<string, MindmapNode>();
   private selectedId: string | null = null;
   private _template: TemplateType = 'default';
-  private _flavor: CatppuccinFlavor = 'latte';
   private _theme: string | null = null;
   private _version: string = KM_VERSION;
   private seq = 0;
+  private _saveExpandState: SaveExpandState = 'preserve';
   private undoStack: KmDocumentJson[] = [];
   private redoStack: KmDocumentJson[] = [];
   private static readonly MAX_UNDO = 50;
@@ -225,20 +166,27 @@ export class MindmapEngine {
   private _dropTarget: DropTarget | null = null;
   private _dragNodeRects: Map<string, { x: number; y: number; w: number; h: number }> | null = null;
 
+  // Tooltip state
+  private _tooltip: HTMLDivElement | null = null;
+
+  // Search state
+  private _searchResults: SearchResult[] = [];
+  private _searchIndex = -1;
+  private _searchQuery = '';
+
   public onContentChange: (() => void) | null = null;
   public onSelectionChange: ((node: MindmapNode | null) => void) | null = null;
-  public onFlavorChange: ((flavor: CatppuccinFlavor) => void) | null = null;
 
   constructor(container: HTMLElement) {
     this._container = container;
     this.graph = new Graph({
       container,
       autoResize: true,
-      panning: { enabled: true, eventTypes: ['rightMouseDown'] },
-      mousewheel: { enabled: true, factor: 1.04, zoomAtMousePosition: true },
+      panning: { enabled: true, eventTypes: ['rightMouseDown', 'mouseWheel'] },
+      mousewheel: { enabled: false },
       interacting: { nodeMovable: false },
       connecting: { enabled: false } as Record<string, unknown>,
-      background: { color: this.pal.base },
+      background: { color: P.parchment },
     });
     this.bindGraphEvents();
   }
@@ -247,27 +195,6 @@ export class MindmapEngine {
 
   get template(): TemplateType {
     return this._template;
-  }
-
-  get flavor(): CatppuccinFlavor {
-    return this._flavor;
-  }
-
-  private get pal(): CatppuccinColors {
-    return CATPPUCCIN[this._flavor];
-  }
-
-  setFlavor(f: CatppuccinFlavor) {
-    if (this._flavor === f) return;
-    this._flavor = f;
-    this.applyCanvasBackground();
-    this.render();
-    this.onFlavorChange?.(f);
-  }
-
-  private applyCanvasBackground() {
-    const bg = isLightFlavor(this._flavor) ? this.pal.base : this.pal.base;
-    this.graph.drawBackground({ color: bg });
   }
 
   getSelectedNode(): MindmapNode | null {
@@ -297,6 +224,14 @@ export class MindmapEngine {
     this.zoomToFit();
   }
 
+  get saveExpandState(): SaveExpandState {
+    return this._saveExpandState;
+  }
+
+  set saveExpandState(v: SaveExpandState) {
+    this._saveExpandState = v;
+  }
+
   exportDocument(): KmDocumentJson {
     if (!this.root) return createDefaultKmDocument();
     return {
@@ -305,6 +240,32 @@ export class MindmapEngine {
       theme: this._theme,
       version: this._version,
     };
+  }
+
+  exportForSave(): KmDocumentJson {
+    const doc = this.exportDocument();
+    if (this._saveExpandState !== 'preserve') {
+      this.normalizeExpandState(doc.root, 0);
+    }
+    return doc;
+  }
+
+  private normalizeExpandState(km: KmNodeJson, depth: number) {
+    const maxLevel =
+      this._saveExpandState === 'expandAll' ? Infinity
+        : this._saveExpandState === 'level1' ? 1
+          : this._saveExpandState === 'level2' ? 2
+            : this._saveExpandState === 'level3' ? 3
+              : Infinity;
+
+    if (km.children.length > 0 && depth >= maxLevel) {
+      km.data.expandState = 'collapse';
+    } else {
+      delete km.data.expandState;
+    }
+    for (const c of km.children) {
+      this.normalizeExpandState(c, depth + 1);
+    }
   }
 
   private importDocumentSilent(doc: KmDocumentJson) {
@@ -496,10 +457,9 @@ export class MindmapEngine {
     input.style.width = `${Math.max(rect.w - 4, 80)}px`;
     input.style.height = `${Math.max(rect.h - 4, 28)}px`;
 
-    const light = isLightFlavor(this._flavor);
-    input.style.background = light ? '#fff' : this.pal.surface0;
-    input.style.color = this.pal.text;
-    input.style.borderColor = this.pal.lavender;
+    input.style.background = P.ivory;
+    input.style.color = P.nearBlack;
+    input.style.borderColor = P.terracotta;
 
     input.addEventListener('blur', () => {
       setTimeout(() => this.commitEdit(), 0);
@@ -795,6 +755,14 @@ export class MindmapEngine {
     this.graph.zoomToFit({ padding: 80, maxScale: 1.5 });
   }
 
+  zoomIn() {
+    this.graph.zoom(0.1, { absolute: false });
+  }
+
+  zoomOut() {
+    this.graph.zoom(-0.1, { absolute: false });
+  }
+
   expand(id?: string) {
     const node = this.nodeMap.get(id ?? this.selectedId ?? '');
     if (!node || !node.collapsed) return;
@@ -850,8 +818,121 @@ export class MindmapEngine {
     this.emitChange();
   }
 
+  // ── Tooltip ──────────────────────────────────────────────────────
+
+  private _showTooltip(nodeId: string) {
+    const mn = this.nodeMap.get(nodeId);
+    if (!mn?.note) return;
+    this._hideTooltip();
+    const rect = this.getNodeContainerRect(nodeId);
+    if (!rect) return;
+
+    const tip = document.createElement('div');
+    tip.className = 'km-tooltip';
+    const text = mn.note.length > 300 ? mn.note.slice(0, 300) + '…' : mn.note;
+    tip.textContent = text;
+    tip.style.left = `${rect.x}px`;
+    tip.style.top = `${rect.y + rect.h + 6}px`;
+    tip.style.maxWidth = `${Math.max(rect.w + 40, 260)}px`;
+    this._container.appendChild(tip);
+    this._tooltip = tip;
+  }
+
+  private _hideTooltip() {
+    if (this._tooltip) {
+      this._tooltip.remove();
+      this._tooltip = null;
+    }
+  }
+
+  // ── Search ──────────────────────────────────────────────────────
+
+  get searchResults(): readonly SearchResult[] { return this._searchResults; }
+  get searchIndex(): number { return this._searchIndex; }
+  get searchQuery(): string { return this._searchQuery; }
+
+  getCurrentSearchResult(): SearchResult | null {
+    return this._searchResults[this._searchIndex] ?? null;
+  }
+
+  search(query: string): SearchResult[] {
+    this._searchQuery = query;
+    this._searchResults = [];
+    this._searchIndex = -1;
+    if (!query || !this.root) {
+      this.applySelectionVisual();
+      return [];
+    }
+    const q = query.toLowerCase();
+    this._walkDFS(this.root, (node) => {
+      const titleMatch = node.text.toLowerCase().includes(q);
+      const noteMatch = !!node.note && node.note.toLowerCase().includes(q);
+      if (titleMatch || noteMatch) {
+        this._searchResults.push({ nodeId: node.id, titleMatch, noteMatch });
+      }
+    });
+    if (this._searchResults.length > 0) {
+      this._searchIndex = 0;
+      this._goToSearchResult(0);
+    }
+    this.applySelectionVisual();
+    return this._searchResults;
+  }
+
+  nextSearchResult(): SearchResult | null {
+    if (this._searchResults.length === 0) return null;
+    this._searchIndex = (this._searchIndex + 1) % this._searchResults.length;
+    this._goToSearchResult(this._searchIndex);
+    return this.getCurrentSearchResult();
+  }
+
+  prevSearchResult(): SearchResult | null {
+    if (this._searchResults.length === 0) return null;
+    this._searchIndex = (this._searchIndex - 1 + this._searchResults.length) % this._searchResults.length;
+    this._goToSearchResult(this._searchIndex);
+    return this.getCurrentSearchResult();
+  }
+
+  clearSearch() {
+    this._searchQuery = '';
+    this._searchResults = [];
+    this._searchIndex = -1;
+    this.applySelectionVisual();
+  }
+
+  private _goToSearchResult(index: number) {
+    const result = this._searchResults[index];
+    if (!result) return;
+    this._ensureNodeVisible(result.nodeId);
+    this.selectNode(result.nodeId);
+    const cell = this.graph.getCellById(result.nodeId);
+    if (cell?.isNode()) {
+      this.graph.centerCell(cell);
+    }
+  }
+
+  private _ensureNodeVisible(nodeId: string) {
+    let cur = nodeId;
+    let needsRender = false;
+    while (this.parentMap.has(cur)) {
+      const parent = this.parentMap.get(cur)!;
+      if (parent.collapsed) {
+        parent.collapsed = false;
+        needsRender = true;
+      }
+      cur = parent.id;
+    }
+    if (needsRender) this.render();
+  }
+
+  private _walkDFS(node: MindmapNode, fn: (n: MindmapNode) => void) {
+    fn(node);
+    for (const c of node.children) this._walkDFS(c, fn);
+  }
+
   dispose() {
     this._destroyEditOverlay();
+    this._hideTooltip();
     this._endDrag(true);
     this.graph.dispose();
   }
@@ -1110,10 +1191,21 @@ export class MindmapEngine {
     });
 
     this.graph.on('node:mousedown', ({ node, e }: any) => {
+      this._hideTooltip();
       const evt = e.originalEvent ?? e;
       const clientX = evt.clientX ?? 0;
       const clientY = evt.clientY ?? 0;
       this._initDrag(node.id, clientX, clientY);
+    });
+
+    this.graph.on('node:mouseenter', ({ node }: any) => {
+      if (this._drag?.active || this._editingId) return;
+      const mn = this.nodeMap.get(node.id);
+      if (mn?.note) this._showTooltip(node.id);
+    });
+
+    this.graph.on('node:mouseleave', () => {
+      this._hideTooltip();
     });
   }
 
@@ -1309,7 +1401,7 @@ export class MindmapEngine {
           ry: style.ry,
           cursor: 'pointer',
           filter: depth === 0
-            ? `drop-shadow(0 4px 12px ${withAlpha(this.pal.crust, 0.35)})`
+            ? 'drop-shadow(0 4px 12px rgba(20,20,19,0.18))'
             : 'none',
         },
         label: {
@@ -1328,7 +1420,7 @@ export class MindmapEngine {
           fill: style.textFill,
           fontSize: style.fontSize,
           fontWeight: style.fontWeight,
-          fontFamily: '"IBM Plex Sans","PingFang SC",system-ui,sans-serif',
+          fontFamily: 'system-ui,-apple-system,"PingFang SC","Segoe UI",sans-serif',
           cursor: 'pointer',
         },
       },
@@ -1375,80 +1467,64 @@ export class MindmapEngine {
 
   // ── Internal: Styling ─────────────────────────────────────────────
 
-  private depthColor(depth: number): string {
-    const accents = depthAccentColors(this.pal);
-    if (depth <= 0) return accents[0];
-    return accents[(depth - 1) % accents.length];
-  }
-
   private nodeStyle(depth: number, _branch: number) {
-    const p = this.pal;
-    const light = isLightFlavor(this._flavor);
-
     if (depth === 0) {
       return {
-        fill: light ? p.text : p.crust,
-        stroke: light ? p.subtext0 : p.surface0,
+        fill: P.nearBlack,
+        stroke: P.darkSurface,
         strokeWidth: 0,
-        rx: 16,
-        ry: 16,
-        textFill: light ? p.base : p.text,
+        rx: 16, ry: 16,
+        textFill: P.ivory,
         fontSize: 16,
         fontWeight: 700,
       };
     }
-
-    const accent = this.depthColor(depth);
-
     if (depth === 1) {
       return {
-        fill: accent,
-        stroke: accent,
+        fill: P.terracotta,
+        stroke: P.terracotta,
         strokeWidth: 0,
-        rx: 10,
-        ry: 10,
-        textFill: light ? p.base : p.crust,
+        rx: 10, ry: 10,
+        textFill: P.ivory,
         fontSize: 14,
         fontWeight: 600,
       };
     }
-
-    const bg = light
-      ? mixColors(p.base, accent, 0.12)
-      : mixColors(p.surface0, accent, 0.18);
-
     return {
-      fill: bg,
-      stroke: withAlpha(accent, 0.35),
+      fill: P.ivory,
+      stroke: P.borderCream,
       strokeWidth: 1,
-      rx: 8,
-      ry: 8,
-      textFill: light ? p.text : p.text,
+      rx: 8, ry: 8,
+      textFill: P.charcoal,
       fontSize: 13,
       fontWeight: 400,
     };
   }
 
   private edgeColor(depth: number, _branch: number): string {
-    const accent = this.depthColor(depth);
-    return depth <= 1 ? accent : withAlpha(accent, 0.65);
+    if (depth <= 1) return P.terracotta;
+    return P.ringWarm;
   }
 
   private applySelectionVisual() {
-    const p = this.pal;
-    const selectionColor = p.lavender;
+    const matchIds = new Set(this._searchResults.map(r => r.nodeId));
 
     for (const cell of this.graph.getNodes()) {
       const d = cell.getData() as { depth: number; branch: number } | undefined;
       const base = this.nodeStyle(d?.depth ?? 0, d?.branch ?? 0);
       cell.attr('body/stroke', base.stroke);
       cell.attr('body/strokeWidth', base.strokeWidth);
+
+      if (matchIds.has(cell.id) && cell.id !== this.selectedId) {
+        cell.attr('body/stroke', P.coral);
+        cell.attr('body/strokeWidth', 1.5);
+      }
     }
     if (this.selectedId) {
       const cell = this.graph.getCellById(this.selectedId);
       if (cell?.isNode()) {
-        cell.attr('body/stroke', selectionColor);
-        cell.attr('body/strokeWidth', 3);
+        cell.attr('body/stroke', P.terracotta);
+        cell.attr('body/strokeWidth', 2.5);
       }
     }
   }

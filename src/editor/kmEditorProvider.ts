@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import type { HostToWebviewMessage, WebviewToHostMessage } from '../shared/protocol';
+import type { HostToWebviewMessage, WebviewToHostMessage, WebviewConfig, SaveExpandState } from '../shared/protocol';
 
 export const KM_EDITOR_VIEW_TYPE = 'kityminder-neo.kmEditor';
 
@@ -54,8 +54,18 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
       }
     });
 
+    const changeConfigSubscription = vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration('kityminderNeo.saveExpandState')) {
+        this.postMessage(webview, {
+          type: 'configChanged',
+          config: this.readConfig(),
+        });
+      }
+    });
+
     webviewPanel.onDidDispose(() => {
       changeDocumentSubscription.dispose();
+      changeConfigSubscription.dispose();
     });
 
     webview.onDidReceiveMessage(async (message: WebviewToHostMessage) => {
@@ -64,7 +74,8 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
           this.postMessage(webview, {
             type: 'init',
             text: document.getText(),
-            filename: vscode.workspace.asRelativePath(document.uri, false)
+            filename: vscode.workspace.asRelativePath(document.uri, false),
+            config: this.readConfig(),
           });
 
           const warnings = this.importWarnings.get(document.uri.toString());
@@ -171,14 +182,8 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
         </div>
         <div class="toolbar-divider"></div>
         <div class="toolbar-group">
-          <span class="toolbar-label">配色</span>
-          <button class="btn flavor-btn" data-flavor="latte">Latte</button>
-          <button class="btn flavor-btn" data-flavor="frappe">Frappé</button>
-          <button class="btn flavor-btn" data-flavor="macchiato">Macchiato</button>
-          <button class="btn flavor-btn" data-flavor="mocha">Mocha</button>
-        </div>
-        <div class="toolbar-divider"></div>
-        <div class="toolbar-group">
+          <button id="btn-zoom-in" class="btn icon-btn" title="放大 (⌘+)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg></button>
+          <button id="btn-zoom-out" class="btn icon-btn" title="缩小 (⌘-)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/></svg></button>
           <button id="btn-center" class="btn icon-btn" title="居中"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/></svg></button>
           <button id="btn-zoom-fit" class="btn icon-btn" title="适应画布"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
         </div>
@@ -191,6 +196,16 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
 
       <!-- Warning banner -->
       <div id="warning-banner" class="warning-banner hidden"></div>
+
+      <!-- Search bar -->
+      <div id="search-bar" class="search-bar hidden">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="search-input" type="text" placeholder="搜索标题或备注…" />
+        <span id="search-count" class="search-count"></span>
+        <button id="btn-search-prev" class="btn icon-btn" title="上一个 (Shift+Enter)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg></button>
+        <button id="btn-search-next" class="btn icon-btn" title="下一个 (Enter)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button id="btn-search-close" class="btn icon-btn" title="关闭 (Escape)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
 
       <!-- Main -->
       <div class="main-content">
@@ -231,6 +246,15 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
     <script nonce="${nonce}" src="${scriptUri}"></script>
   </body>
 </html>`;
+  }
+
+  private readConfig(): WebviewConfig {
+    const cfg = vscode.workspace.getConfiguration('kityminderNeo');
+    const raw = cfg.get<string>('saveExpandState', 'preserve');
+    const valid: SaveExpandState[] = ['preserve', 'expandAll', 'level1', 'level2', 'level3'];
+    return {
+      saveExpandState: valid.includes(raw as SaveExpandState) ? raw as SaveExpandState : 'preserve',
+    };
   }
 
   private postMessage(webview: vscode.Webview, message: HostToWebviewMessage) {

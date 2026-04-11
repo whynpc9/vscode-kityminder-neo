@@ -7,7 +7,6 @@ A minimal VS Code extension for viewing and editing KityMinder `.km` mindmap fil
 - Open and edit `.km` files in a custom visual editor
 - Canvas 内交互式编辑（选中、拖动、内联编辑等）
 - Switch between `default`, `right`, and `structure` templates
-- Catppuccin 配色切换（Latte / Frappé / Macchiato / Mocha）
 - Import `.xmind` files and convert them to `.km`
 - Undo / Redo 支持
 
@@ -98,6 +97,9 @@ A minimal VS Code extension for viewing and editing KityMinder `.km` mindmap fil
 | Ctrl+V (⌘V) | 粘贴 |
 | Ctrl+Z (⌘Z) | 撤销 |
 | Ctrl+Shift+Z (⌘⇧Z) / Ctrl+Y | 重做 |
+| Ctrl+= (⌘=) | 放大 |
+| Ctrl+- (⌘-) | 缩小 |
+| Ctrl+0 (⌘0) | 适应画布 |
 
 ### 布局与视图
 
@@ -105,10 +107,10 @@ A minimal VS Code extension for viewing and editing KityMinder `.km` mindmap fil
 |---|---|
 | 工具栏「脑图 / 右展 / 组织」按钮 | 切换布局模板 |
 | 工具栏「整理布局」按钮 | 重置所有节点布局 |
+| 工具栏「+」/「-」按钮 | 放大 / 缩小画布 |
 | 工具栏「居中」按钮 | 将视图居中到内容 |
 | 工具栏「适应画布」按钮 | 缩放至内容适应画布 |
-| 工具栏 Latte / Frappé / Macchiato / Mocha | 切换 Catppuccin 配色方案 |
-| 鼠标滚轮 | 缩放画布 |
+| 触摸板双指滚动 / 鼠标滚轮 | 平移画布 |
 | 鼠标右键拖动空白区域 | 平移画布 |
 
 ### 其他
@@ -118,6 +120,24 @@ A minimal VS Code extension for viewing and editing KityMinder `.km` mindmap fil
 | 工具栏「源码 JSON」按钮 | 以文本编辑器打开 `.km` 文件的原始 JSON |
 | 工具栏「撤销」/「重做」按钮 | 撤销 / 重做最近的操作（最多 50 步） |
 | 资源管理器右键 `.xmind` → Import XMind to KM | 将 XMind 文件导入为 `.km` |
+
+## 配置项
+
+| 设置 | 默认值 | 说明 |
+|---|---|---|
+| `kityminderNeo.saveExpandState` | `preserve` | 控制保存 `.km` 文件时如何处理节点展开/收缩状态 |
+
+`saveExpandState` 可选值：
+
+| 值 | 含义 |
+|---|---|
+| `preserve` | 保留当前展开/收缩状态（默认，和原始行为一致） |
+| `expandAll` | 保存时移除所有 `expandState`，即全部展开 |
+| `level1` | 保存时展开到第 1 层级 |
+| `level2` | 保存时展开到第 2 层级 |
+| `level3` | 保存时展开到第 3 层级 |
+
+> 选择 `preserve` 以外的值时，编辑器内仍可自由展开/收缩节点进行浏览，但写入文件的 JSON 会按此规则规范化 `expandState` 字段。适合将 `.km` 文件作为纯知识图谱数据使用、不希望展开状态变更出现在 git diff 中的场景。
 
 ## Development
 
