@@ -1,143 +1,89 @@
-# vscode-kityminder-neo
+# KityMinder Neo
 
-A minimal VS Code extension for viewing and editing KityMinder `.km` mindmap files, with `.xmind` import support.
+A VS Code extension for viewing and editing [KityMinder](https://github.com/nickel-org/kityminder) `.km` mindmap files, with `.xmind` import support.
 
 ## Features
 
-- Open and edit `.km` files in a custom visual editor
-- Canvas 内交互式编辑（选中、拖动、内联编辑等）
-- Switch between `default`, `right`, and `structure` templates
+- Keep `.km` files in VS Code's normal text and diff flows by default
+- Open `.km` files in an interactive visual mindmap editor on demand
+- Add, delete, drag, and inline-edit nodes on a canvas
+- Copy / cut / paste subtrees — works across files
+- Switch between **mind map**, **right-expand**, and **org chart** layouts
+- Search nodes by title or note content
+- Sidebar panel for editing node title and Markdown note
+- Undo / Redo (up to 50 steps)
 - Import `.xmind` files and convert them to `.km`
-- Undo / Redo 支持
+- Configurable expand-state normalization on save
+- Preserve JSON-based Source Control diffs for `.km` files
 
-## 支持的操作
+## Installation
 
-### 选中
+Search **KityMinder Neo** in the VS Code Extensions panel, or install from the command line:
 
-| 操作 | 说明 |
+```bash
+code --install-extension whynpc9.vscode-kityminder-neo
+```
+
+## Quick Start
+
+1. Open a `.km` file normally to view or diff its raw JSON in the standard text editor.
+2. To launch the visual editor, use one of these entry points:
+   - Explorer: right-click a `.km` file → *Open Mindmap Editor*
+   - Editor title menu: *Open Mindmap Editor*
+   - Command palette: `KityMinder Neo: Open Mindmap Editor`
+3. **Select** a node by clicking it; navigate with arrow keys.
+4. **Edit** a node by double-clicking or pressing `F2`.
+5. **Add** a child node with `Tab`, a sibling with `Enter`.
+6. **Delete** a node with `Delete` / `Backspace`.
+7. **Import XMind**: right-click a `.xmind` file in Explorer → *Import XMind to KM*.
+
+## Diff Behavior
+
+KityMinder Neo intentionally does **not** replace VS Code's normal text/diff experience for `.km` files by default.
+
+- Opening `.km` from Source Control keeps the standard JSON diff view
+- Opening `.km` from regular file navigation also stays in the text editor unless you explicitly choose the mindmap editor
+- This makes it easier to review structural changes in git using raw JSON
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
 |---|---|
-| 单击节点 | 选中该节点 |
-| 单击空白区域 | 取消选中 |
-| 方向键 ↑ / ↓ | 在兄弟节点间导航（structure 布局下为父子导航） |
-| 方向键 ← | 导航到父节点（structure 布局下为上一个兄弟） |
-| 方向键 → | 导航到第一个子节点（structure 布局下为下一个兄弟） |
+| Tab | Add child node and edit |
+| Enter | Add sibling node and edit |
+| Delete / Backspace | Delete selected node and subtree |
+| F2 | Enter inline edit |
+| Escape | Cancel edit |
+| Space | Toggle expand / collapse |
+| Arrow keys | Navigate between nodes |
+| Alt + Up / Down | Reorder among siblings |
+| Ctrl+C / Cmd+C | Copy |
+| Ctrl+X / Cmd+X | Cut |
+| Ctrl+V / Cmd+V | Paste |
+| Ctrl+Z / Cmd+Z | Undo |
+| Ctrl+Shift+Z / Cmd+Shift+Z | Redo |
+| Ctrl+F / Cmd+F | Search |
+| Ctrl+= / Cmd+= | Zoom in |
+| Ctrl+- / Cmd+- | Zoom out |
+| Ctrl+0 / Cmd+0 | Fit to canvas |
 
-### 展开 / 收缩
+## Configuration
 
-| 操作 | 说明 |
-|---|---|
-| Space | 切换当前节点的展开/收缩状态 |
-| 工具栏「展开」按钮 | 展开当前节点 |
-| 工具栏「收起」按钮 | 收缩当前节点 |
-| 工具栏 1 / 2 / 3 按钮 | 展开到指定层级 |
-| 工具栏「全部」按钮 | 展开所有节点 |
-
-### 编辑节点标题
-
-| 操作 | 说明 |
-|---|---|
-| 双击节点 | 进入内联编辑模式 |
-| F2 | 对当前选中节点进入内联编辑模式 |
-| Enter（编辑中） | 确认编辑内容 |
-| Escape（编辑中） | 取消编辑，恢复原文本 |
-| 侧边栏标题输入框 | 修改当前选中节点的标题 |
-| 侧边栏备注输入框 | 修改当前选中节点的备注（Markdown） |
-
-### 新增 / 删除节点
-
-| 操作 | 说明 |
-|---|---|
-| Tab | 新增一个子节点，并立即进入编辑模式 |
-| Enter | 新增一个兄弟节点（插入到当前节点之后），并立即进入编辑模式 |
-| Tab（编辑中） | 确认当前编辑，新增子节点并继续编辑 |
-| Delete / Backspace | 删除当前选中节点及其所有子节点 |
-| 工具栏「添加子节点」按钮 | 新增一个子节点 |
-| 工具栏「添加同级节点」按钮 | 新增一个兄弟节点 |
-| 工具栏「添加父节点」按钮 | 在当前节点上方插入一个父节点 |
-| 工具栏「删除节点」按钮 | 删除当前选中节点及其所有子节点 |
-
-### 拖动节点
-
-| 操作 | 说明 |
-|---|---|
-| 拖动非根节点到另一个节点上 | 将该节点（含所有子节点）移动为目标节点的子节点 |
-| 拖动非根节点到两个兄弟节点之间 | 将该节点插入到目标位置（调整顺序） |
-| Alt + ↑ | 在同一父节点下向上移动当前节点（调整顺序） |
-| Alt + ↓ | 在同一父节点下向下移动当前节点（调整顺序） |
-
-> 拖动操作不允许将节点拖到自身或其后代节点上。  
-> 拖动和排序结果会实时反映到 `.km` 文件的 JSON 子成员顺序中。
-
-### 复制 / 粘贴 / 剪切
-
-| 操作 | 说明 |
-|---|---|
-| Ctrl+C (⌘C) | 复制当前选中节点及其整个子树到剪贴板 |
-| Ctrl+X (⌘X) | 剪切当前选中节点及其整个子树（不可剪切根节点） |
-| Ctrl+V (⌘V) | 将剪贴板内容粘贴为当前选中节点的子节点 |
-
-> 支持跨 `.km` 文件操作：在一张图中复制一个分支，切换到另一张图后粘贴即可。  
-> 如果剪贴板中是普通文本（非脑图节点数据），粘贴时会创建一个以该文本为标题的新子节点。
-
-### 键盘快捷键汇总
-
-| 快捷键 | 功能 |
-|---|---|
-| Tab | 新增子节点并编辑 |
-| Enter | 新增兄弟节点并编辑 |
-| Delete / Backspace | 删除选中节点及子树 |
-| F2 | 进入内联编辑 |
-| Escape | 取消编辑 |
-| Space | 切换展开/收缩 |
-| ↑ / ↓ | 兄弟节点间导航 |
-| ← / → | 父子节点间导航 |
-| Alt + ↑ / ↓ | 同级节点间调整顺序 |
-| Ctrl+C (⌘C) | 复制 |
-| Ctrl+X (⌘X) | 剪切 |
-| Ctrl+V (⌘V) | 粘贴 |
-| Ctrl+Z (⌘Z) | 撤销 |
-| Ctrl+Shift+Z (⌘⇧Z) / Ctrl+Y | 重做 |
-| Ctrl+= (⌘=) | 放大 |
-| Ctrl+- (⌘-) | 缩小 |
-| Ctrl+0 (⌘0) | 适应画布 |
-
-### 布局与视图
-
-| 操作 | 说明 |
-|---|---|
-| 工具栏「脑图 / 右展 / 组织」按钮 | 切换布局模板 |
-| 工具栏「整理布局」按钮 | 重置所有节点布局 |
-| 工具栏「+」/「-」按钮 | 放大 / 缩小画布 |
-| 工具栏「居中」按钮 | 将视图居中到内容 |
-| 工具栏「适应画布」按钮 | 缩放至内容适应画布 |
-| 触摸板双指滚动 / 鼠标滚轮 | 平移画布 |
-| 鼠标右键拖动空白区域 | 平移画布 |
-
-### 其他
-
-| 操作 | 说明 |
-|---|---|
-| 工具栏「源码 JSON」按钮 | 以文本编辑器打开 `.km` 文件的原始 JSON |
-| 工具栏「撤销」/「重做」按钮 | 撤销 / 重做最近的操作（最多 50 步） |
-| 资源管理器右键 `.xmind` → Import XMind to KM | 将 XMind 文件导入为 `.km` |
-
-## 配置项
-
-| 设置 | 默认值 | 说明 |
+| Setting | Default | Description |
 |---|---|---|
-| `kityminderNeo.saveExpandState` | `preserve` | 控制保存 `.km` 文件时如何处理节点展开/收缩状态 |
+| `kityminderNeo.saveExpandState` | `preserve` | How to handle node expand/collapse state when saving |
 
-`saveExpandState` 可选值：
+`saveExpandState` values:
 
-| 值 | 含义 |
+| Value | Behavior |
 |---|---|
-| `preserve` | 保留当前展开/收缩状态（默认，和原始行为一致） |
-| `expandAll` | 保存时移除所有 `expandState`，即全部展开 |
-| `level1` | 保存时展开到第 1 层级 |
-| `level2` | 保存时展开到第 2 层级 |
-| `level3` | 保存时展开到第 3 层级 |
+| `preserve` | Keep current expand/collapse state (default) |
+| `expandAll` | Remove all `expandState` — fully expanded on save |
+| `level1` | Expand to level 1 on save |
+| `level2` | Expand to level 2 on save |
+| `level3` | Expand to level 3 on save |
 
-> 选择 `preserve` 以外的值时，编辑器内仍可自由展开/收缩节点进行浏览，但写入文件的 JSON 会按此规则规范化 `expandState` 字段。适合将 `.km` 文件作为纯知识图谱数据使用、不希望展开状态变更出现在 git diff 中的场景。
+> Values other than `preserve` normalize the `expandState` field in the saved JSON while letting you freely expand/collapse in the editor. Useful when you want to keep expand-state changes out of git diffs.
 
 ## Development
 
@@ -146,12 +92,12 @@ npm install
 npm run build
 ```
 
-Then press `F5` in VS Code to launch an Extension Development Host.
-
-## Validation
+Press `F5` in VS Code to launch an Extension Development Host.
 
 ```bash
-npm run build
-npm test
-npx tsc --noEmit
+npm run build && npm test && npx tsc --noEmit
 ```
+
+## License
+
+[MIT](LICENSE)

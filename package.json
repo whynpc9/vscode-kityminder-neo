@@ -1,24 +1,44 @@
 {
   "name": "vscode-kityminder-neo",
   "displayName": "KityMinder Neo",
-  "description": "A minimal VS Code editor for KityMinder .km mindmap files with XMind import.",
+  "description": "View and edit KityMinder .km mindmap files visually in VS Code, with XMind import support.",
   "version": "0.1.0",
-  "private": true,
+  "publisher": "whynpc9",
   "license": "MIT",
+  "icon": "resources/icon.png",
   "main": "./dist/extension.js",
   "engines": {
     "vscode": "^1.110.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whynpc9/vscode-kityminder-neo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/whynpc9/vscode-kityminder-neo/issues"
+  },
+  "homepage": "https://github.com/whynpc9/vscode-kityminder-neo#readme",
+  "keywords": [
+    "mindmap",
+    "kityminder",
+    "km",
+    "xmind",
+    "mind map",
+    "brain map",
+    "思维导图",
+    "脑图"
+  ],
   "categories": [
+    "Visualization",
     "Other"
   ],
-  "activationEvents": [
-    "onCustomEditor:kityminder-neo.kmEditor",
-    "onCommand:kityminderNeo.importXmindToKm",
-    "onCommand:kityminderNeo.revealSourceJson"
-  ],
+  "activationEvents": [],
   "contributes": {
     "commands": [
+      {
+        "command": "kityminderNeo.openMindmapEditor",
+        "title": "KityMinder Neo: Open Mindmap Editor"
+      },
       {
         "command": "kityminderNeo.importXmindToKm",
         "title": "KityMinder Neo: Import XMind to KM"
@@ -31,12 +51,27 @@
     "menus": {
       "explorer/context": [
         {
+          "command": "kityminderNeo.openMindmapEditor",
+          "when": "resourceExtname == .km",
+          "group": "navigation"
+        },
+        {
           "command": "kityminderNeo.importXmindToKm",
           "when": "resourceExtname == .xmind",
           "group": "navigation"
         }
       ],
+      "editor/title/context": [
+        {
+          "command": "kityminderNeo.openMindmapEditor",
+          "when": "resourceExtname == .km && activeCustomEditorId != kityminder-neo.kmEditor",
+          "group": "navigation"
+        }
+      ],
       "commandPalette": [
+        {
+          "command": "kityminderNeo.openMindmapEditor"
+        },
         {
           "command": "kityminderNeo.importXmindToKm"
         },
@@ -72,7 +107,7 @@
             "filenamePattern": "*.km"
           }
         ],
-        "priority": "default"
+        "priority": "option"
       }
     ]
   },

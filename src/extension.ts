@@ -11,6 +11,20 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
+      'kityminderNeo.openMindmapEditor',
+      async (resource?: vscode.Uri) => {
+        const target = resource ?? getActiveResourceUri();
+        if (!target) {
+          void vscode.window.showWarningMessage('No KM file available to open in the mindmap editor.');
+          return;
+        }
+        await vscode.commands.executeCommand('vscode.openWith', target, KM_EDITOR_VIEW_TYPE);
+      }
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
       'kityminderNeo.importXmindToKm',
       async (resource?: vscode.Uri) => {
         await importXmindToKm(importWarnings, resource);
