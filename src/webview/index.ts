@@ -402,5 +402,3 @@ function esc(v: string): string {
 
 const __app = new App();
 __app.bootstrap();
-(window as any).__app__ = __app;
-(window as any).__kmEngine = __app.engine;

@@ -5,3 +5,4 @@ dist/
 .agents/
 skills-lock.json
 test/*.km
+*.vsix

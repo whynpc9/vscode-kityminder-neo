@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
 
 import type { HostToWebviewMessage, WebviewToHostMessage, WebviewConfig, SaveExpandState } from '../shared/protocol';
+import {
+  replaceCustomEditorWithPlainText,
+  shouldUsePlainTextInsteadOfCustomEditor,
+} from './plainTextFallback';
 
 export const KM_EDITOR_VIEW_TYPE = 'kityminder-neo.kmEditor';
 
@@ -30,8 +34,16 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
 
   public async resolveCustomTextEditor(
     document: vscode.TextDocument,
-    webviewPanel: vscode.WebviewPanel
+    webviewPanel: vscode.WebviewPanel,
+    token: vscode.CancellationToken
   ): Promise<void> {
+    if (await shouldUsePlainTextInsteadOfCustomEditor(document.uri)) {
+      if (!token.isCancellationRequested) {
+        await replaceCustomEditorWithPlainText(document.uri, webviewPanel);
+      }
+      return;
+    }
+
     const webview = webviewPanel.webview;
     webview.options = {
       enableScripts: true,

@@ -1,7 +1,9 @@
-src/**
-scripts/**
-test/**
-tsconfig.json
-vitest.config.ts
-node_modules/**
-!dist/**
+**
+!dist/extension.js
+!dist/webview.js
+!dist/webview.css
+!resources/icon.png
+!LICENSE
+!README.md
+!CHANGELOG.md
+!package.json
