@@ -1,7 +1,7 @@
 {
   "name": "vscode-kityminder-neo",
   "displayName": "KityMinder Neo",
-  "description": "View and edit KityMinder .km mindmap files visually in VS Code, with XMind import support.",
+  "description": "Edit KityMinder .km mindmaps in VS Code with an on-demand visual editor and XMind import.",
   "version": "0.1.0",
   "publisher": "whynpc9",
   "license": "MIT",
@@ -116,9 +116,12 @@
     "build": "node scripts/build.mjs",
     "build:watch": "node scripts/build.mjs --watch",
     "test": "vitest run",
-    "check": "npm run build && npm run test"
+    "check": "npm run build && npm test && npx tsc --noEmit",
+    "package": "npm run check && npx @vscode/vsce package --no-dependencies",
+    "publish:vsce": "npm run check && npx @vscode/vsce publish --no-dependencies"
   },
   "devDependencies": {
+    "@vscode/vsce": "^3.7.1",
     "@antv/hierarchy": "^0.7.1",
     "@antv/x6": "^3.1.7",
     "@types/node": "^24.10.1",

@@ -98,6 +98,22 @@ Press `F5` in VS Code to launch an Extension Development Host.
 npm run build && npm test && npx tsc --noEmit
 ```
 
+## Packaging
+
+Create a local VSIX:
+
+```bash
+npm run package
+```
+
+Publish to the Visual Studio Marketplace:
+
+```bash
+npm run publish:vsce
+```
+
+This assumes you have already created the publisher and logged in with `vsce`.
+
 ## License
 
 [MIT](LICENSE)

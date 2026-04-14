@@ -1,10 +1,10 @@
 # Changelog
 
-## 0.1.0 — 2026-04-11
+## 0.1.0 — 2026-04-14
 
 Initial release.
 
-- Visual editor for `.km` (KityMinder) mindmap files
+- On-demand visual editor for `.km` (KityMinder) mindmap files
 - Interactive canvas: select, drag, inline-edit nodes
 - Add child / sibling / parent nodes; delete nodes
 - Copy, cut, paste node subtrees (cross-file supported)
@@ -16,3 +16,4 @@ Initial release.
 - Sidebar panel for editing node title and note (Markdown)
 - Import `.xmind` files and convert to `.km`
 - Configurable save-time expand state normalization
+- Preserve standard JSON text and diff workflows by default
