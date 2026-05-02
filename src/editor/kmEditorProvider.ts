@@ -233,23 +233,60 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
         </div>
 
         <aside class="sidebar" id="sidebar">
-          <div class="sidebar-header">
-            <span>节点属性</span>
-            <div class="sidebar-meta" id="selection-meta">未选择节点</div>
+          <div class="sidebar-body">
+            <!-- Empty state: no node selected -->
+            <div class="sidebar-empty" id="sidebar-empty">
+              <div class="sidebar-empty-illustration" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>
+              </div>
+              <div class="sidebar-empty-title">未选中节点</div>
+              <div class="sidebar-empty-desc">点击画布中的任意节点，或使用方向键导航来编辑标题与备注。</div>
+            </div>
+
+            <!-- Active state: a node is selected -->
+            <div class="sidebar-active" id="sidebar-active" hidden>
+              <div class="sidebar-eyebrow">节点属性</div>
+
+              <div class="node-card" id="node-card">
+                <span class="node-card-badge" id="node-card-badge" aria-hidden="true"></span>
+                <div class="node-card-body">
+                  <div class="node-card-title" id="node-card-title">—</div>
+                  <div class="node-card-meta" id="selection-meta">未选择节点</div>
+                </div>
+              </div>
+
+              <div class="chips" id="node-chips"></div>
+
+              <div class="sidebar-content">
+                <div class="field">
+                  <div class="field-head">
+                    <label for="node-title">标题</label>
+                  </div>
+                  <input id="node-title" type="text" placeholder="选择节点后编辑标题" disabled />
+                </div>
+                <div class="field field-grow">
+                  <div class="field-head">
+                    <label for="node-note">备注</label>
+                    <span class="field-badge" title="支持 Markdown 语法">MD</span>
+                  </div>
+                  <textarea
+                    id="node-note"
+                    placeholder="在此添加备注…留空将移除该节点的备注"
+                    disabled
+                  ></textarea>
+                  <div class="field-foot">
+                    <span class="field-stat" id="note-stats">0 字符</span>
+                    <span class="field-tip">支持 Markdown</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="sidebar-content">
-            <div class="field">
-              <label for="node-title">标题</label>
-              <input id="node-title" type="text" placeholder="选择节点后编辑标题" disabled />
-            </div>
-            <div class="field field-grow">
-              <label for="node-note">备注</label>
-              <textarea
-                id="node-note"
-                placeholder="支持 Markdown 格式，留空移除备注"
-                disabled
-              ></textarea>
-            </div>
+
+          <div class="sidebar-foot">
+            <span class="hint-pair"><span class="kbd">F2</span>编辑</span>
+            <span class="hint-pair"><span class="kbd">Tab</span>子节点</span>
+            <span class="hint-pair"><span class="kbd">↵</span>同级</span>
           </div>
         </aside>
       </div>

@@ -1,7 +1,12 @@
 import { Graph, Cell, Shape, Path } from '@antv/x6';
 import { mindmap as mindmapLayout } from '@antv/hierarchy';
+import { marked } from 'marked';
 import type { KmDocumentJson, KmNodeJson } from '../shared/km';
 import { KM_VERSION, createDefaultKmDocument } from '../shared/km';
+
+// GFM is the default in marked v4+. `breaks: true` makes single newlines
+// render as <br>, which matches how note text is typically authored.
+marked.setOptions({ gfm: true, breaks: true });
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -168,6 +173,7 @@ export class MindmapEngine {
 
   // Tooltip state
   private _tooltip: HTMLDivElement | null = null;
+  private _tooltipNodeId: string | null = null;
 
   // Search state
   private _searchResults: SearchResult[] = [];
@@ -829,13 +835,16 @@ export class MindmapEngine {
 
     const tip = document.createElement('div');
     tip.className = 'km-tooltip';
-    const text = mn.note.length > 300 ? mn.note.slice(0, 300) + '…' : mn.note;
-    tip.textContent = text;
+    // Truncate very long notes before parsing so the resulting HTML
+    // stays compact; CSS still clips visually with max-height.
+    const raw = mn.note.length > 1500 ? mn.note.slice(0, 1500) + '\n\n…' : mn.note;
+    tip.innerHTML = marked.parse(raw, { async: false }) as string;
     tip.style.left = `${rect.x}px`;
     tip.style.top = `${rect.y + rect.h + 6}px`;
-    tip.style.maxWidth = `${Math.max(rect.w + 40, 260)}px`;
+    tip.style.maxWidth = `${Math.min(420, Math.max(rect.w + 40, 280))}px`;
     this._container.appendChild(tip);
     this._tooltip = tip;
+    this._tooltipNodeId = nodeId;
   }
 
   private _hideTooltip() {
@@ -843,6 +852,7 @@ export class MindmapEngine {
       this._tooltip.remove();
       this._tooltip = null;
     }
+    this._tooltipNodeId = null;
   }
 
   // ── Search ──────────────────────────────────────────────────────
@@ -1198,10 +1208,25 @@ export class MindmapEngine {
       this._initDrag(node.id, clientX, clientY);
     });
 
-    this.graph.on('node:mouseenter', ({ node }: any) => {
+    // X6 doesn't emit `node:mousemove`, but `node:mouseover` fires whenever
+    // the cursor enters a different sub-element of the node (body rect, label,
+    // or note-icon group). We use that to detect entry/exit of the icon
+    // specifically — the icon group has `cursor="help"` (unique to it),
+    // while the body and label use `cursor="pointer"`.
+    this.graph.on('node:mouseover', ({ node, e }: any) => {
       if (this._drag?.active || this._editingId) return;
-      const mn = this.nodeMap.get(node.id);
-      if (mn?.note) this._showTooltip(node.id);
+      const data = node.getData() as { hasNote?: boolean } | undefined;
+      if (!data?.hasNote) return;
+      const evt = (e?.originalEvent ?? e) as MouseEvent | undefined;
+      const target = evt?.target as Element | null;
+      const onIcon = !!target?.closest('[cursor="help"]');
+      if (onIcon) {
+        if (this._tooltipNodeId !== node.id) {
+          this._showTooltip(node.id);
+        }
+      } else if (this._tooltipNodeId === node.id) {
+        this._hideTooltip();
+      }
     });
 
     this.graph.on('node:mouseleave', () => {
@@ -1321,6 +1346,7 @@ export class MindmapEngine {
     this.graph.translate(tx.tx, tx.ty);
 
     this.applySelectionVisual();
+    this._hideTooltip();
   }
 
   private buildHierData(node: MindmapNode, depth: number): Record<string, unknown> {
@@ -1386,51 +1412,94 @@ export class MindmapEngine {
     const padX = (data?._padX as number) ?? 8;
     const displayText = isCollapsed && childCount > 0 ? `${rawText} [${childCount}]` : wrappedText;
 
-    const node = new Shape.Rect({
+    const hasNote = Boolean(note);
+
+    const nodeAttrs: Record<string, Record<string, unknown>> = {
+      body: {
+        fill: style.fill,
+        stroke: style.stroke,
+        strokeWidth: style.strokeWidth,
+        rx: style.rx,
+        ry: style.ry,
+        cursor: 'pointer',
+        filter: depth === 0
+          ? 'drop-shadow(0 4px 12px rgba(20,20,19,0.18))'
+          : 'none',
+      },
+      label: {
+        ref: 'body',
+        refX: 0.5,
+        refY: 0.5,
+        textAnchor: 'middle',
+        textVerticalAnchor: 'middle',
+        textWrap: {
+          text: displayText || ' ',
+          width: -padX,
+          height: '100%',
+          ellipsis: true,
+          breakWord: true,
+        },
+        fill: style.textFill,
+        fontSize: style.fontSize,
+        fontWeight: style.fontWeight,
+        fontFamily: 'system-ui,-apple-system,"PingFang SC","Segoe UI",sans-serif',
+        cursor: 'pointer',
+      },
+    };
+
+    const nodeConfig: Record<string, unknown> = {
       id,
       x,
       y,
       width: w,
       height: h,
-      attrs: {
-        body: {
-          fill: style.fill,
-          stroke: style.stroke,
-          strokeWidth: style.strokeWidth,
-          rx: style.rx,
-          ry: style.ry,
-          cursor: 'pointer',
-          filter: depth === 0
-            ? 'drop-shadow(0 4px 12px rgba(20,20,19,0.18))'
-            : 'none',
-        },
-        label: {
-          ref: 'body',
-          refX: 0.5,
-          refY: 0.5,
-          textAnchor: 'middle',
-          textVerticalAnchor: 'middle',
-          textWrap: {
-            text: displayText || ' ',
-            width: -padX,
-            height: '100%',
-            ellipsis: true,
-            breakWord: true,
-          },
-          fill: style.textFill,
-          fontSize: style.fontSize,
-          fontWeight: style.fontWeight,
-          fontFamily: 'system-ui,-apple-system,"PingFang SC","Segoe UI",sans-serif',
-          cursor: 'pointer',
-        },
-      },
-      data: { depth, branch, hasNote: Boolean(note) },
-    });
+      attrs: nodeAttrs,
+      data: { depth, branch, hasNote },
+    };
 
-    if (note) {
-      node.attr('body/strokeDasharray', '3 2');
-      node.attr('body/strokeWidth', Math.max(1.5, style.strokeWidth));
+    if (hasNote) {
+      nodeConfig.markup = [
+        { tagName: 'rect', selector: 'body' },
+        { tagName: 'text', selector: 'label' },
+        {
+          tagName: 'g',
+          selector: 'noteIcon',
+          children: [
+            { tagName: 'circle', selector: 'noteIconBg' },
+            { tagName: 'path', selector: 'noteIconPath' },
+          ],
+        },
+      ];
+      // Badge position: hangs slightly off the upper-right corner of body
+      const badgeCx = w - 4;
+      const badgeCy = 4;
+      // X6 strips `class` from attrs, so we identify the icon via the
+      // `cursor="help"` attribute (which X6 does pass through and is unique
+      // to this element — body/label use cursor="pointer").
+      nodeAttrs.noteIcon = {
+        transform: `translate(${badgeCx}, ${badgeCy})`,
+        cursor: 'help',
+      };
+      nodeAttrs.noteIconBg = {
+        cx: 0,
+        cy: 0,
+        r: 8,
+        fill: P.ivory,
+        stroke: P.terracotta,
+        strokeWidth: 1.4,
+        cursor: 'help',
+      };
+      nodeAttrs.noteIconPath = {
+        d: 'M -3 -2.5 L 3 -2.5 M -3 0 L 3 0 M -3 2.5 L 1.5 2.5',
+        stroke: P.terracotta,
+        strokeWidth: 1.3,
+        fill: 'none',
+        strokeLinecap: 'round',
+        pointerEvents: 'none',
+      };
     }
+
+    const node = new Shape.Rect(nodeConfig);
 
     cells.push(node);
 

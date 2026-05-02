@@ -36,11 +36,11 @@
   <div id="test-controls">
     <label for="km-select">测试文件:</label>
     <select id="km-select">
-      <option value="垂体手术.km">垂体手术 (复杂)</option>
-      <option value="冠状动脉旁路术.km">冠状动脉旁路术 (复杂)</option>
-      <option value="大肠部分切除术.km">大肠部分切除术</option>
-      <option value="子宫子宫颈手术.km">子宫子宫颈手术</option>
-      <option value="头和颈血管内取栓.km">头和颈血管内取栓</option>
+      <option value="gfm-test.km">GFM 测试</option>
+      <option value="reading-notes.km">读书笔记 (含备注)</option>
+      <option value="project-plan.km">项目计划</option>
+      <option value="collapse-demo.km">折叠演示</option>
+      <option value="deep-tree.km">深层结构</option>
     </select>
     <button id="reload-btn">重新加载</button>
   </div>
@@ -95,6 +95,8 @@
       </div>
       <div class="toolbar-divider"></div>
       <div class="toolbar-group">
+        <button id="btn-zoom-in" class="btn icon-btn" title="放大">+</button>
+        <button id="btn-zoom-out" class="btn icon-btn" title="缩小">-</button>
         <button id="btn-center" class="btn icon-btn" title="居中"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/></svg></button>
         <button id="btn-zoom-fit" class="btn icon-btn" title="适应画布"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
       </div>
@@ -106,6 +108,15 @@
     </div>
 
     <div id="warning-banner" class="warning-banner hidden"></div>
+
+    <div id="search-bar" class="search-bar hidden">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search-input" type="text" placeholder="搜索…" />
+      <span id="search-count" class="search-count"></span>
+      <button id="btn-search-prev" class="btn icon-btn">↑</button>
+      <button id="btn-search-next" class="btn icon-btn">↓</button>
+      <button id="btn-search-close" class="btn icon-btn">×</button>
+    </div>
 
     <div class="main-content">
       <div class="canvas-area">
@@ -120,19 +131,54 @@
       </div>
 
       <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-          <span>节点属性</span>
-          <div class="sidebar-meta" id="selection-meta">未选择节点</div>
+        <div class="sidebar-body">
+          <div class="sidebar-empty" id="sidebar-empty">
+            <div class="sidebar-empty-illustration" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>
+            </div>
+            <div class="sidebar-empty-title">未选中节点</div>
+            <div class="sidebar-empty-desc">点击画布中的任意节点，或使用方向键导航来编辑标题与备注。</div>
+          </div>
+
+          <div class="sidebar-active" id="sidebar-active" hidden>
+            <div class="sidebar-eyebrow">节点属性</div>
+
+            <div class="node-card" id="node-card">
+              <span class="node-card-badge" id="node-card-badge" aria-hidden="true"></span>
+              <div class="node-card-body">
+                <div class="node-card-title" id="node-card-title">—</div>
+                <div class="node-card-meta" id="selection-meta">未选择节点</div>
+              </div>
+            </div>
+
+            <div class="chips" id="node-chips"></div>
+
+            <div class="sidebar-content">
+              <div class="field">
+                <div class="field-head">
+                  <label for="node-title">标题</label>
+                </div>
+                <input id="node-title" type="text" placeholder="选择节点后编辑标题" disabled />
+              </div>
+              <div class="field field-grow">
+                <div class="field-head">
+                  <label for="node-note">备注</label>
+                  <span class="field-badge" title="支持 Markdown 语法">MD</span>
+                </div>
+                <textarea id="node-note" placeholder="在此添加备注…留空将移除该节点的备注" disabled></textarea>
+                <div class="field-foot">
+                  <span class="field-stat" id="note-stats">0 字符</span>
+                  <span class="field-tip">支持 Markdown</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="sidebar-content">
-          <div class="field">
-            <label for="node-title">标题</label>
-            <input id="node-title" type="text" placeholder="选择节点后编辑标题" disabled />
-          </div>
-          <div class="field field-grow">
-            <label for="node-note">备注</label>
-            <textarea id="node-note" placeholder="支持 Markdown 格式，留空移除备注" disabled></textarea>
-          </div>
+
+        <div class="sidebar-foot">
+          <span class="hint-pair"><span class="kbd">F2</span>编辑</span>
+          <span class="hint-pair"><span class="kbd">Tab</span>子节点</span>
+          <span class="hint-pair"><span class="kbd">↵</span>同级</span>
         </div>
       </aside>
     </div>
@@ -168,7 +214,7 @@
         const res = await fetch('./' + encodeURIComponent(file));
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const text = await res.text();
-        window.postMessage({ type: 'init', text, filename: file }, '*');
+        window.postMessage({ type: 'init', text, filename: file, config: { saveExpandState: 'preserve' } }, '*');
       } catch (err) {
         window.postMessage({ type: 'error', message: String(err) }, '*');
       }

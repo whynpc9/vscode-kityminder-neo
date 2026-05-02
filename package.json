@@ -85,7 +85,13 @@
       "properties": {
         "kityminderNeo.saveExpandState": {
           "type": "string",
-          "enum": ["preserve", "expandAll", "level1", "level2", "level3"],
+          "enum": [
+            "preserve",
+            "expandAll",
+            "level1",
+            "level2",
+            "level3"
+          ],
           "enumDescriptions": [
             "保留当前展开/收缩状态（默认行为）",
             "保存时全部展开（移除所有 expandState）",
@@ -121,11 +127,11 @@
     "publish:vsce": "npm run check && npx @vscode/vsce publish --no-dependencies"
   },
   "devDependencies": {
-    "@vscode/vsce": "^3.7.1",
     "@antv/hierarchy": "^0.7.1",
     "@antv/x6": "^3.1.7",
     "@types/node": "^24.10.1",
     "@types/vscode": "^1.110.0",
+    "@vscode/vsce": "^3.7.1",
     "@xmldom/xmldom": "^0.8.11",
     "esbuild": "^0.27.4",
     "fast-xml-parser": "^5.5.9",
@@ -133,5 +139,8 @@
     "tslib": "^2.8.1",
     "typescript": "^6.0.2",
     "vitest": "^4.1.1"
+  },
+  "dependencies": {
+    "marked": "^18.0.3"
   }
 }
