@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1 - 2026-06-16
+
+- Refresh the sidebar note editing experience and node note indicators
+- Render Markdown notes through a safer webview path
+- Add archive size and tree-depth limits for `.km` and `.xmind` import paths
+- Update package lock dependencies to clear current `npm audit` findings
+
 ## 0.1.0 — 2026-04-14
 
 Initial release.
