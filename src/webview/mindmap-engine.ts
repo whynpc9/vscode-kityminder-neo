@@ -1,12 +1,8 @@
 import { Graph, Cell, Shape, Path } from '@antv/x6';
 import { mindmap as mindmapLayout } from '@antv/hierarchy';
-import { marked } from 'marked';
 import type { KmDocumentJson, KmNodeJson } from '../shared/km';
 import { KM_VERSION, createDefaultKmDocument } from '../shared/km';
-
-// GFM is the default in marked v4+. `breaks: true` makes single newlines
-// render as <br>, which matches how note text is typically authored.
-marked.setOptions({ gfm: true, breaks: true });
+import { renderSafeMarkdown } from './safeMarkdown';
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -838,7 +834,7 @@ export class MindmapEngine {
     // Truncate very long notes before parsing so the resulting HTML
     // stays compact; CSS still clips visually with max-height.
     const raw = mn.note.length > 1500 ? mn.note.slice(0, 1500) + '\n\n…' : mn.note;
-    tip.innerHTML = marked.parse(raw, { async: false }) as string;
+    tip.innerHTML = renderSafeMarkdown(raw);
     tip.style.left = `${rect.x}px`;
     tip.style.top = `${rect.y + rect.h + 6}px`;
     tip.style.maxWidth = `${Math.min(420, Math.max(rect.w + 40, 280))}px`;

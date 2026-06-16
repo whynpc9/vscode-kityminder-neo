@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import { describe, expect, it } from 'vitest';
 
-import { importXmindArchive } from '../src/import/xmindImport';
+import { XMIND_IMPORT_LIMITS, importXmindArchive } from '../src/import/xmindImport';
 
 async function buildArchive(files: Record<string, string>): Promise<Uint8Array> {
   const zip = new JSZip();
@@ -9,6 +9,31 @@ async function buildArchive(files: Record<string, string>): Promise<Uint8Array> 
     zip.file(name, value);
   }
   return zip.generateAsync({ type: 'uint8array' });
+}
+
+function buildNestedJsonTopic(depth: number): Record<string, unknown> {
+  let topic: Record<string, unknown> = {
+    title: `Topic ${depth}`
+  };
+
+  for (let index = depth - 1; index >= 0; index -= 1) {
+    topic = {
+      title: `Topic ${index}`,
+      children: {
+        attached: [topic]
+      }
+    };
+  }
+
+  return topic;
+}
+
+function buildNestedXmlTopic(depth: number): string {
+  let xml = '<topic><title>Topic ' + depth + '</title></topic>';
+  for (let index = depth - 1; index >= 0; index -= 1) {
+    xml = `<topic><title>Topic ${index}</title><children><topics type="attached">${xml}</topics></children></topic>`;
+  }
+  return xml;
 }
 
 describe('xmind import', () => {
@@ -83,5 +108,38 @@ describe('xmind import', () => {
     expect(result.km.root.data.text).toBe('XML Root');
     expect(result.km.root.data.note).toBe('XML note');
     expect(result.km.root.children[0]?.data.text).toBe('XML Child');
+  });
+
+  it('rejects oversized compressed content before importing', async () => {
+    const archive = await buildArchive({
+      'content.json': 'x'.repeat(XMIND_IMPORT_LIMITS.maxContentBytes + 1)
+    });
+
+    await expect(importXmindArchive(archive)).rejects.toThrow(/maximum size/);
+  });
+
+  it('rejects JSON topic trees that exceed import depth limits', async () => {
+    const archive = await buildArchive({
+      'content.json': JSON.stringify([
+        {
+          rootTopic: buildNestedJsonTopic(XMIND_IMPORT_LIMITS.maxTopicDepth + 1)
+        }
+      ])
+    });
+
+    await expect(importXmindArchive(archive)).rejects.toThrow(/maximum depth/);
+  });
+
+  it('rejects XML topic trees that exceed import depth limits', async () => {
+    const archive = await buildArchive({
+      'content.xml': `<?xml version="1.0" encoding="UTF-8"?>
+<xmap-content>
+  <sheet id="sheet-1">
+    ${buildNestedXmlTopic(XMIND_IMPORT_LIMITS.maxTopicDepth + 1)}
+  </sheet>
+</xmap-content>`
+    });
+
+    await expect(importXmindArchive(archive)).rejects.toThrow(/maximum depth/);
   });
 });

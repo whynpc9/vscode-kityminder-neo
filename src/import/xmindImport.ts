@@ -2,6 +2,7 @@ import { DOMParser } from '@xmldom/xmldom';
 import JSZip from 'jszip';
 
 import {
+  KM_DOCUMENT_LIMITS,
   KM_VERSION,
   type KmDocumentJson,
   type KmNodeJson
@@ -14,6 +15,15 @@ export interface XMindImportResult {
 
 type JsonTopic = Record<string, unknown>;
 type JsonSheet = Record<string, unknown>;
+
+export const XMIND_IMPORT_LIMITS = {
+  maxArchiveBytes: 20 * 1024 * 1024,
+  maxEntries: 512,
+  maxTotalUncompressedBytes: 20 * 1024 * 1024,
+  maxContentBytes: KM_DOCUMENT_LIMITS.maxDocumentChars,
+  maxTopics: KM_DOCUMENT_LIMITS.maxNodes,
+  maxTopicDepth: KM_DOCUMENT_LIMITS.maxDepth
+} as const;
 
 const UNSUPPORTED_WARNING_MAP: Record<string, string> = {
   sheetRelationships: 'Ignored XMind relationships.',
@@ -45,6 +55,98 @@ function addWarning(warnings: Set<string>, key: string) {
   const warning = UNSUPPORTED_WARNING_MAP[key];
   if (warning) {
     warnings.add(warning);
+  }
+}
+
+function byteLength(data: Uint8Array | ArrayBuffer): number {
+  return data.byteLength;
+}
+
+function utf8ByteLength(text: string): number {
+  return Buffer.byteLength(text, 'utf8');
+}
+
+function getZipEntryUncompressedSize(entry: JSZip.JSZipObject): number | null {
+  const compressedData = (entry as unknown as {
+    _data?: {
+      uncompressedSize?: unknown;
+    };
+  })._data;
+  return typeof compressedData?.uncompressedSize === 'number'
+    ? compressedData.uncompressedSize
+    : null;
+}
+
+function validateArchiveInput(data: Uint8Array | ArrayBuffer) {
+  const size = byteLength(data);
+  if (size > XMIND_IMPORT_LIMITS.maxArchiveBytes) {
+    throw new Error(`The XMind archive exceeds the maximum size of ${XMIND_IMPORT_LIMITS.maxArchiveBytes} bytes.`);
+  }
+}
+
+function validateZipEntries(zip: JSZip) {
+  let entryCount = 0;
+  let declaredUncompressedBytes = 0;
+
+  for (const entry of Object.values(zip.files)) {
+    if (entry.dir) {
+      continue;
+    }
+
+    entryCount += 1;
+    if (entryCount > XMIND_IMPORT_LIMITS.maxEntries) {
+      throw new Error(`The XMind archive exceeds the maximum file count of ${XMIND_IMPORT_LIMITS.maxEntries}.`);
+    }
+
+    const uncompressedSize = getZipEntryUncompressedSize(entry);
+    if (uncompressedSize === null) {
+      continue;
+    }
+
+    declaredUncompressedBytes += uncompressedSize;
+    if (declaredUncompressedBytes > XMIND_IMPORT_LIMITS.maxTotalUncompressedBytes) {
+      throw new Error(
+        `The XMind archive exceeds the maximum uncompressed size of ${XMIND_IMPORT_LIMITS.maxTotalUncompressedBytes} bytes.`
+      );
+    }
+  }
+}
+
+async function readContentEntry(entry: JSZip.JSZipObject, fileName: string): Promise<string> {
+  const uncompressedSize = getZipEntryUncompressedSize(entry);
+  if (uncompressedSize !== null && uncompressedSize > XMIND_IMPORT_LIMITS.maxContentBytes) {
+    throw new Error(`The XMind ${fileName} file exceeds the maximum size of ${XMIND_IMPORT_LIMITS.maxContentBytes} bytes.`);
+  }
+
+  const text = await entry.async('string');
+  if (utf8ByteLength(text) > XMIND_IMPORT_LIMITS.maxContentBytes) {
+    throw new Error(`The XMind ${fileName} file exceeds the maximum size of ${XMIND_IMPORT_LIMITS.maxContentBytes} bytes.`);
+  }
+  return text;
+}
+
+function validateTopicTree<T>(
+  rootTopic: T,
+  getChildren: (topic: T) => T[],
+  topicDescription: string
+) {
+  let topicCount = 0;
+  const stack: Array<{ topic: T; depth: number }> = [{ topic: rootTopic, depth: 0 }];
+
+  while (stack.length > 0) {
+    const { topic, depth } = stack.pop()!;
+    topicCount += 1;
+    if (topicCount > XMIND_IMPORT_LIMITS.maxTopics) {
+      throw new Error(`The XMind ${topicDescription} tree exceeds the maximum topic count of ${XMIND_IMPORT_LIMITS.maxTopics}.`);
+    }
+    if (depth > XMIND_IMPORT_LIMITS.maxTopicDepth) {
+      throw new Error(`The XMind ${topicDescription} tree exceeds the maximum depth of ${XMIND_IMPORT_LIMITS.maxTopicDepth}.`);
+    }
+
+    const children = getChildren(topic);
+    for (let index = children.length - 1; index >= 0; index -= 1) {
+      stack.push({ topic: children[index], depth: depth + 1 });
+    }
   }
 }
 
@@ -213,6 +315,7 @@ function convertJsonSheet(sheet: JsonSheet, warnings: Set<string>): XMindImportR
     throw new Error('The XMind content.json file does not contain a root topic.');
   }
 
+  validateTopicTree(rootTopic, getJsonAttachedChildren, 'JSON topic');
   collectJsonWarnings(sheet, warnings);
 
   return {
@@ -330,6 +433,7 @@ function convertXmlContent(xmlText: string, warnings: Set<string>): XMindImportR
     throw new Error('The XMind content.xml file does not contain a root topic.');
   }
 
+  validateTopicTree(rootTopic, getXmlAttachedChildren, 'XML topic');
   collectXmlWarnings(rootTopic, sheetElement, warnings);
 
   return {
@@ -344,12 +448,14 @@ function convertXmlContent(xmlText: string, warnings: Set<string>): XMindImportR
 }
 
 export async function importXmindArchive(data: Uint8Array | ArrayBuffer): Promise<XMindImportResult> {
+  validateArchiveInput(data);
   const zip = await JSZip.loadAsync(data);
+  validateZipEntries(zip);
   const warnings = new Set<string>();
 
   const jsonEntry = findZipEntry(zip, 'content.json');
   if (jsonEntry) {
-    const jsonText = await jsonEntry.async('string');
+    const jsonText = await readContentEntry(jsonEntry, 'content.json');
     const content = JSON.parse(jsonText) as unknown;
     const sheets = getJsonSheetList(content);
     if (sheets.length === 0) {
@@ -363,7 +469,7 @@ export async function importXmindArchive(data: Uint8Array | ArrayBuffer): Promis
 
   const xmlEntry = findZipEntry(zip, 'content.xml');
   if (xmlEntry) {
-    const xmlText = await xmlEntry.async('string');
+    const xmlText = await readContentEntry(xmlEntry, 'content.xml');
     return convertXmlContent(xmlText, warnings);
   }
 

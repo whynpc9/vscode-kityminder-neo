@@ -12,11 +12,26 @@ export interface KmDocumentJson {
   version?: string;
 }
 
+export const KM_DOCUMENT_LIMITS = {
+  maxDocumentChars: 5 * 1024 * 1024,
+  maxNodes: 10000,
+  maxDepth: 200
+} as const;
+
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function normalizeKmNode(value: unknown, path = 'root'): KmNodeJson {
+interface NormalizedNodeSeed {
+  node: KmNodeJson;
+  childrenSource: unknown[];
+}
+
+function readKmNode(value: unknown, path: string, depth: number): NormalizedNodeSeed {
+  if (depth > KM_DOCUMENT_LIMITS.maxDepth) {
+    throw new Error(`${path} exceeds the maximum KM tree depth of ${KM_DOCUMENT_LIMITS.maxDepth}.`);
+  }
+
   if (!isPlainObject(value)) {
     throw new Error(`${path} must be an object.`);
   }
@@ -31,11 +46,47 @@ function normalizeKmNode(value: unknown, path = 'root'): KmNodeJson {
   }
 
   return {
-    data: { ...value.data },
-    children: (childrenSource ?? []).map((child, index) =>
-      normalizeKmNode(child, `${path}.children[${index}]`)
-    )
+    node: {
+      data: { ...value.data },
+      children: []
+    },
+    childrenSource: childrenSource ?? []
   };
+}
+
+function normalizeKmNode(value: unknown, path = 'root'): KmNodeJson {
+  const rootSeed = readKmNode(value, path, 0);
+  let nodeCount = 1;
+  const stack = rootSeed.childrenSource.map((child, index) => ({
+    value: child,
+    parent: rootSeed.node,
+    index,
+    path: `${path}.children[${index}]`,
+    depth: 1
+  }));
+
+  while (stack.length > 0) {
+    const frame = stack.pop()!;
+    nodeCount += 1;
+    if (nodeCount > KM_DOCUMENT_LIMITS.maxNodes) {
+      throw new Error(`KM document exceeds the maximum node count of ${KM_DOCUMENT_LIMITS.maxNodes}.`);
+    }
+
+    const seed = readKmNode(frame.value, frame.path, frame.depth);
+    frame.parent.children[frame.index] = seed.node;
+
+    for (let index = seed.childrenSource.length - 1; index >= 0; index -= 1) {
+      stack.push({
+        value: seed.childrenSource[index],
+        parent: seed.node,
+        index,
+        path: `${frame.path}.children[${index}]`,
+        depth: frame.depth + 1
+      });
+    }
+  }
+
+  return rootSeed.node;
 }
 
 export function normalizeKmDocument(value: unknown): KmDocumentJson {
@@ -61,6 +112,12 @@ export function normalizeKmDocument(value: unknown): KmDocumentJson {
 }
 
 export function parseKmDocument(text: string): KmDocumentJson {
+  if (text.length > KM_DOCUMENT_LIMITS.maxDocumentChars) {
+    throw new Error(
+      `KM document exceeds the maximum size of ${KM_DOCUMENT_LIMITS.maxDocumentChars} characters.`
+    );
+  }
+
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
