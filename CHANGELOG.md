@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2 - 2026-06-17
+
+- Refresh Marketplace documentation with bilingual README updates and screenshots
+- Refactor node property editing into a focused popover panel
+- Add readable view zoom mode for quickly returning large maps to a legible canvas
+
 ## 0.1.1 - 2026-06-16
 
 - Refresh the sidebar note editing experience and node note indicators
