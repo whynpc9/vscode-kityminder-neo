@@ -19,13 +19,11 @@ class App {
   private readonly errorMessage = this.el<HTMLParagraphElement>('error-message');
   private readonly titleInput = this.el<HTMLInputElement>('node-title');
   private readonly noteInput = this.el<HTMLTextAreaElement>('node-note');
-  private readonly selectionMeta = this.el<HTMLDivElement>('selection-meta');
-  private readonly sidebarEmpty = this.el<HTMLDivElement>('sidebar-empty');
-  private readonly sidebarActive = this.el<HTMLDivElement>('sidebar-active');
-  private readonly nodeCardTitle = this.el<HTMLDivElement>('node-card-title');
-  private readonly nodeCardBadge = this.el<HTMLSpanElement>('node-card-badge');
-  private readonly nodeChips = this.el<HTMLDivElement>('node-chips');
   private readonly noteStats = this.el<HTMLSpanElement>('note-stats');
+  private readonly canvasArea = this.el<HTMLDivElement>('canvas-area');
+  private readonly popover = this.el<HTMLDivElement>('node-popover');
+  private readonly popoverPinBtn = this.el<HTMLButtonElement>('btn-popover-pin');
+  private readonly breadcrumb = this.el<HTMLSpanElement>('node-breadcrumb');
   private readonly searchBar = this.el<HTMLDivElement>('search-bar');
   private readonly searchInput = this.el<HTMLInputElement>('search-input');
   private readonly searchCount = this.el<HTMLSpanElement>('search-count');
@@ -38,10 +36,17 @@ class App {
   private updatingForm = false;
   private hasValidDocument = false;
   private currentSerialized = '';
+  private popoverPinned = false;
+  private selectedNodeId: string | null = null;
+  private filePath = '';
 
   bootstrap() {
     this.engine = new MindmapEngine(this.container);
-    this.engine.onContentChange = () => this.scheduleSync();
+    this.engine.onContentChange = () => {
+      this.refreshTopBarTitle();
+      this.refreshNodeContext();
+      this.scheduleSync();
+    };
     this.engine.onSelectionChange = (node) => this.refreshSelection(node);
     this.bindUi();
     window.addEventListener('message', (e: MessageEvent<HostToWebviewMessage>) =>
@@ -76,6 +81,10 @@ class App {
     this.btn('btn-search-close', () => this.closeSearch());
     this.btn('btn-open-source', () => this.openSource());
     this.btn('btn-open-source-error', () => this.openSource());
+    this.btn('btn-popover-close', () => this.closePopover());
+    this.btn('btn-popover-pin', () => this.togglePopoverPin());
+
+    this.popover.addEventListener('mousedown', (e) => e.stopPropagation());
 
     let searchTimer: number | undefined;
     this.searchInput.addEventListener('input', () => {
@@ -96,16 +105,24 @@ class App {
       const mod = e.ctrlKey || e.metaKey;
       const target = e.target as HTMLElement;
       const isEditInput = target.classList.contains('km-edit-input');
-      const isSidebarInput = !isEditInput && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA');
+      const isPopoverInput =
+        !isEditInput &&
+        (target === this.titleInput ||
+          target === this.noteInput ||
+          this.popover.contains(target));
 
       if (isEditInput) return;
 
       if (this.engine.isEditing()) return;
 
-      if (isSidebarInput) {
+      if (isPopoverInput) {
         if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); this.engine.undo(); }
         else if (mod && (e.key === 'Z' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); this.engine.redo(); }
         else if (mod && e.key === 'y') { e.preventDefault(); this.engine.redo(); }
+        else if (e.key === 'Escape') {
+          e.preventDefault();
+          (target as HTMLElement).blur();
+        }
         return;
       }
 
@@ -139,6 +156,14 @@ class App {
         e.preventDefault(); this.engine.removeSelected();
       } else if (e.key === 'F2') {
         e.preventDefault(); this.engine.startEditing();
+      } else if (e.key === 'Escape') {
+        if (!this.searchBar.classList.contains('hidden')) {
+          e.preventDefault();
+          this.closeSearch();
+        } else if (this.engine.getSelectedNode()) {
+          e.preventDefault();
+          this.closePopover();
+        }
       } else if (e.key === ' ') {
         e.preventDefault(); this.engine.toggleCollapse();
       } else if (e.key === 'ArrowUp') {
@@ -194,7 +219,7 @@ class App {
   private handleHost(msg: HostToWebviewMessage) {
     switch (msg.type) {
       case 'init':
-        this.filename.textContent = msg.filename;
+        this.filePath = msg.filename;
         this.applyConfig(msg.config);
         this.loadDocument(msg.text);
         break;
@@ -206,6 +231,7 @@ class App {
         this.scheduleSync();
         break;
       case 'error':
+        this.hasValidDocument = false;
         this.showError(msg.message);
         break;
       case 'importWarnings':
@@ -230,6 +256,7 @@ class App {
       this.engine.importDocument(doc);
       this.currentSerialized = stringifyKmDocument(this.engine.exportForSave());
       this.updateTemplateButtons();
+      this.refreshTopBarTitle();
     } catch (error) {
       this.hasValidDocument = false;
       this.showError(error instanceof Error ? error.message : String(error));
@@ -239,6 +266,10 @@ class App {
   // ── Selection state ─────────────────────────────────────────────
 
   private refreshSelection(node: MindmapNode | null) {
+    if (node?.id !== this.selectedNodeId) {
+      this.selectedNodeId = node?.id ?? null;
+    }
+
     this.updatingForm = true;
     this.titleInput.disabled = !node;
     this.noteInput.disabled = !node;
@@ -246,90 +277,57 @@ class App {
     this.noteInput.value = node?.note ?? '';
     this.updatingForm = false;
 
-    this.sidebarEmpty.hidden = !!node;
-    this.sidebarActive.hidden = !node;
-
     if (!node) {
-      this.selectionMeta.textContent = '未选择节点';
-      this.nodeCardTitle.textContent = '—';
-      this.nodeCardTitle.classList.add('is-empty');
-      this.nodeCardBadge.classList.remove('is-root');
-      this.nodeChips.innerHTML = '';
+      this.breadcrumb.textContent = '';
+      this.hidePopover();
       this.updateNoteStats();
       return;
     }
 
-    const isRoot = this.engine.isNodeRoot(node.id);
-    const depth = this.engine.nodeDepth(node.id);
-    const kids = node.children.length;
-    const hasNote = !!node.note && node.note.trim().length > 0;
-
-    const title = node.text?.trim() ?? '';
-    if (title.length === 0) {
-      this.nodeCardTitle.textContent = '（无标题）';
-      this.nodeCardTitle.classList.add('is-empty');
-    } else {
-      this.nodeCardTitle.textContent = title;
-      this.nodeCardTitle.classList.remove('is-empty');
-    }
-
-    this.nodeCardBadge.classList.toggle('is-root', isRoot);
-    this.selectionMeta.textContent = `${isRoot ? '根节点' : `层级 ${depth}`} · ${kids} 个子节点`;
-    this.renderChips({ isRoot, depth, kids, hasNote, collapsed: !!node.collapsed });
+    this.breadcrumb.textContent = this.formatBreadcrumb(this.engine.getNodeBreadcrumb(node.id));
     this.updateNoteStats();
+    this.showPopover();
   }
 
-  private renderChips(info: {
-    isRoot: boolean;
-    depth: number;
-    kids: number;
-    hasNote: boolean;
-    collapsed: boolean;
-  }) {
-    const chips: string[] = [];
-    if (info.isRoot) {
-      chips.push(
-        chipHtml(
-          'chip-root',
-          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="M5 10a7 7 0 0 1 14 0v6a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3z"/></svg>',
-          '根节点',
-        ),
-      );
-    } else {
-      chips.push(
-        chipHtml(
-          '',
-          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M6 12h12"/><path d="M9 18h6"/></svg>',
-          `层级 ${info.depth}`,
-        ),
-      );
-    }
-    chips.push(
-      chipHtml(
-        '',
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M12 8v4"/><path d="M12 12 6 16"/><path d="m12 12 6 4"/></svg>',
-        `子节点 ${info.kids}`,
-      ),
-    );
-    if (info.collapsed) {
-      chips.push(
-        chipHtml(
-          '',
-          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18 15 12 9 6"/></svg>',
-          '已收起',
-        ),
-      );
-    }
-    if (info.hasNote) {
-      chips.push(
-        chipHtml(
-          'chip-accent',
-          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>',
-          '含备注',
-        ),
-      );
-    }
-    this.nodeChips.innerHTML = chips.join('');
+  private refreshNodeContext() {
+    const node = this.engine.getSelectedNode();
+    if (!node) return;
+    this.breadcrumb.textContent = this.formatBreadcrumb(this.engine.getNodeBreadcrumb(node.id));
+  }
+
+  private formatBreadcrumb(parts: string[]): string {
+    return parts.join(' › ');
+  }
+
+  private showPopover() {
+    this.popover.hidden = false;
+    this.popover.classList.remove('hidden');
+    this.syncPinnedLayout();
+  }
+
+  private hidePopover() {
+    this.popoverPinned = false;
+    this.syncPinnedLayout();
+    this.popover.hidden = true;
+    this.popover.classList.add('hidden');
+  }
+
+  private closePopover() {
+    this.engine.selectNode(null);
+  }
+
+  private togglePopoverPin() {
+    this.popoverPinned = !this.popoverPinned;
+    this.syncPinnedLayout();
+  }
+
+  private syncPinnedLayout() {
+    this.popover.classList.toggle('is-pinned', this.popoverPinned);
+    this.canvasArea.classList.toggle('is-popover-pinned', this.popoverPinned);
+    this.popoverPinBtn.classList.toggle('active', this.popoverPinned);
+    this.popoverPinBtn.title = this.popoverPinned ? '取消固定' : '固定面板';
+    this.popover.style.left = '';
+    this.popover.style.top = '';
   }
 
   private updateNoteStats() {
@@ -367,6 +365,7 @@ class App {
   }
 
   private showError(message: string) {
+    this.refreshTopBarTitle();
     this.errorMessage.textContent = message;
     this.errorOverlay.classList.remove('hidden');
   }
@@ -377,6 +376,15 @@ class App {
   }
 
   // ── Sync ────────────────────────────────────────────────────────
+
+  private refreshTopBarTitle() {
+    const title = this.hasValidDocument ? this.engine.getRootTitle() : null;
+    this.filename.textContent = title ?? this.filePath;
+    const brand = this.filename.closest('.top-bar-brand');
+    if (brand instanceof HTMLElement) {
+      brand.title = this.filePath || 'KityMinder Neo';
+    }
+  }
 
   private scheduleSync() {
     window.clearTimeout(this.pendingSync);
@@ -484,7 +492,8 @@ class App {
   }
 
   private btn(id: string, handler: () => void) {
-    this.el<HTMLButtonElement>(id).addEventListener('click', handler);
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', handler);
   }
 }
 
@@ -495,11 +504,6 @@ function esc(v: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
-}
-
-function chipHtml(extraClass: string, iconSvg: string, label: string): string {
-  const cls = extraClass ? `chip ${extraClass}` : 'chip';
-  return `<span class="${cls}">${iconSvg.replace('<svg ', '<svg width="11" height="11" ')}<span>${esc(label)}</span></span>`;
 }
 
 const __app = new App();

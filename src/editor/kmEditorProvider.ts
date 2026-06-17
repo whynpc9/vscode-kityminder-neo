@@ -151,22 +151,14 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
   </head>
   <body>
     <div class="app">
-      <!-- Header -->
-      <header class="header">
-        <div class="header-brand">
-          <div class="logo">KM</div>
-          <div class="header-info">
-            <div class="header-title">KityMinder Neo</div>
-            <div class="header-filename" id="filename"></div>
-          </div>
+      <!-- Top bar: brand + toolbar + actions in one row -->
+      <header class="top-bar">
+        <div class="top-bar-brand">
+          <div class="logo" title="KityMinder Neo">KM</div>
+          <div class="header-filename" id="filename"></div>
         </div>
-        <div class="header-actions">
-          <button id="btn-open-source" class="btn link icon-btn" title="源码 JSON"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg></button>
-        </div>
-      </header>
-
-      <!-- Toolbar -->
-      <div class="toolbar">
+        <div class="toolbar-divider top-bar-divider" aria-hidden="true"></div>
+        <nav class="top-bar-toolbar" aria-label="编辑器工具栏">
         <div class="toolbar-group">
           <span class="toolbar-label">节点</span>
           <button id="btn-add-child" class="btn icon-btn" title="添加子节点"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
@@ -205,7 +197,11 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
           <button id="btn-undo" class="btn icon-btn" title="撤销 (Ctrl+Z)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></svg></button>
           <button id="btn-redo" class="btn icon-btn" title="重做 (Ctrl+Shift+Z)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"/></svg></button>
         </div>
-      </div>
+        </nav>
+        <div class="top-bar-actions">
+          <button id="btn-open-source" class="btn icon-btn" title="源码 JSON"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg></button>
+        </div>
+      </header>
 
       <!-- Warning banner -->
       <div id="warning-banner" class="warning-banner hidden"></div>
@@ -222,43 +218,24 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
 
       <!-- Main -->
       <div class="main-content">
-        <div class="canvas-area">
+        <div class="canvas-area" id="canvas-area">
           <div id="mindmap-container" class="canvas-container"></div>
-          <div id="error-overlay" class="error-overlay hidden">
-            <div class="error-card">
-              <h3>无法在图形编辑器中打开此文件</h3>
-              <p id="error-message"></p>
-              <button id="btn-open-source-error" class="btn accent">使用文本编辑器打开</button>
-            </div>
-          </div>
-        </div>
 
-        <aside class="sidebar" id="sidebar">
-          <div class="sidebar-body">
-            <!-- Empty state: no node selected -->
-            <div class="sidebar-empty" id="sidebar-empty">
-              <div class="sidebar-empty-illustration" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg>
-              </div>
-              <div class="sidebar-empty-title">未选中节点</div>
-              <div class="sidebar-empty-desc">点击画布中的任意节点，或使用方向键导航来编辑标题与备注。</div>
-            </div>
-
-            <!-- Active state: a node is selected -->
-            <div class="sidebar-active" id="sidebar-active" hidden>
-              <div class="sidebar-eyebrow">节点属性</div>
-
-              <div class="node-card" id="node-card">
-                <span class="node-card-badge" id="node-card-badge" aria-hidden="true"></span>
-                <div class="node-card-body">
-                  <div class="node-card-title" id="node-card-title">—</div>
-                  <div class="node-card-meta" id="selection-meta">未选择节点</div>
+          <div id="node-popover" class="node-popover hidden" hidden>
+            <div class="node-popover-panel">
+              <div class="node-popover-head">
+                <span class="popover-eyebrow">节点属性</span>
+                <div class="node-popover-actions">
+                  <button id="btn-popover-pin" class="btn icon-btn" title="固定面板"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1z"/></svg></button>
+                  <button id="btn-popover-close" class="btn icon-btn" title="关闭"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
                 </div>
               </div>
 
-              <div class="chips" id="node-chips"></div>
+              <div class="node-popover-context">
+                <span class="node-breadcrumb" id="node-breadcrumb"></span>
+              </div>
 
-              <div class="sidebar-content">
+              <div class="node-popover-fields">
                 <div class="field">
                   <div class="field-head">
                     <label for="node-title">标题</label>
@@ -272,7 +249,7 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
                   </div>
                   <textarea
                     id="node-note"
-                    placeholder="在此添加备注…留空将移除该节点的备注"
+                    placeholder="在此添加备注…支持 Markdown"
                     disabled
                   ></textarea>
                   <div class="field-foot">
@@ -284,12 +261,14 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
             </div>
           </div>
 
-          <div class="sidebar-foot">
-            <span class="hint-pair"><span class="kbd">F2</span>编辑</span>
-            <span class="hint-pair"><span class="kbd">Tab</span>子节点</span>
-            <span class="hint-pair"><span class="kbd">↵</span>同级</span>
+          <div id="error-overlay" class="error-overlay hidden">
+            <div class="error-card">
+              <h3>无法在图形编辑器中打开此文件</h3>
+              <p id="error-message"></p>
+              <button id="btn-open-source-error" class="btn accent">使用文本编辑器打开</button>
+            </div>
           </div>
-        </aside>
+        </div>
       </div>
     </div>
 

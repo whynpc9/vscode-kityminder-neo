@@ -1,0 +1,2794 @@
+{
+  "version": "2.8",
+  "themes": {
+    "mode": [
+      "light"
+    ]
+  },
+  "children": [
+    {
+      "type": "text",
+      "id": "hint-left",
+      "x": 0,
+      "y": 0,
+      "textGrowth": "auto",
+      "content": "当前界面",
+      "fontSize": 16,
+      "fontWeight": "700",
+      "fill": "#141413",
+      "fontFamily": "Georgia"
+    },
+    {
+      "type": "text",
+      "id": "hint-right",
+      "x": 1340,
+      "y": 0,
+      "textGrowth": "auto",
+      "content": "Popover 方案",
+      "fontSize": 16,
+      "fontWeight": "700",
+      "fill": "#c96442",
+      "fontFamily": "Georgia"
+    },
+    {
+      "type": "text",
+      "id": "hint-right-sub",
+      "x": 1340,
+      "y": 22,
+      "textGrowth": "fixed-width",
+      "content": "全宽画布 · 选中节点时弹出属性面板 · 可 Pin 固定或 Esc 关闭",
+      "fontSize": 11,
+      "fill": "#5e5d59",
+      "fontFamily": "system-ui",
+      "width": 500
+    },
+    {
+      "type": "frame",
+      "id": "scr-current",
+      "name": "当前界面",
+      "theme": {
+        "mode": "light"
+      },
+      "x": 0,
+      "y": 48,
+      "width": 1280,
+      "height": 800,
+      "layout": "vertical",
+      "clip": true,
+      "fill": "#f5f4ed",
+      "stroke": {
+        "align": "outside",
+        "thickness": 2,
+        "fill": "#f0eee6"
+      },
+      "cornerRadius": 12,
+      "children": [
+        {
+          "type": "frame",
+          "id": "scr-current-hdr",
+          "layout": "vertical",
+          "width": 1280,
+          "height": 43,
+          "children": [
+            {
+              "type": "frame",
+              "id": "scr-current-hdr-inner",
+              "layout": "horizontal",
+              "alignItems": "center",
+              "justifyContent": "space_between",
+              "width": 1280,
+              "height": 42,
+              "padding": 16,
+              "fill": "#faf9f5",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "scr-current-hdr-brand",
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "scr-current-hdr-logo",
+                      "width": 26,
+                      "height": 26,
+                      "cornerRadius": 8,
+                      "fill": "#141413",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-current-hdr-km",
+                          "textGrowth": "auto",
+                          "content": "KM",
+                          "fontSize": 10,
+                          "fontWeight": "700",
+                          "fill": "#faf9f5",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-hdr-info",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-current-hdr-title",
+                          "textGrowth": "auto",
+                          "content": "KityMinder Neo",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "fill": "#141413",
+                          "fontFamily": "Georgia"
+                        },
+                        {
+                          "type": "text",
+                          "id": "scr-current-hdr-file",
+                          "textGrowth": "auto",
+                          "content": "resources/乳腺外科恶性肿瘤.km",
+                          "fontSize": 11,
+                          "fontWeight": "500",
+                          "fill": "#87867f",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-hdr-src",
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 28,
+                  "height": 28,
+                  "cornerRadius": 8,
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "id": "scr-current-hdr-src-dot",
+                      "width": 14,
+                      "height": 14,
+                      "cornerRadius": 2,
+                      "fill": "#4d4c48"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "rectangle",
+              "id": "scr-current-hdr-border",
+              "width": 1280,
+              "height": 1,
+              "cornerRadius": 0,
+              "fill": "#f0eee6"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "scr-current-tb",
+          "layout": "vertical",
+          "width": 1280,
+          "height": 39,
+          "children": [
+            {
+              "type": "frame",
+              "id": "scr-current-tb-inner",
+              "layout": "horizontal",
+              "alignItems": "center",
+              "gap": 6,
+              "width": 1280,
+              "height": 38,
+              "padding": 12,
+              "fill": "#faf9f5",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "scr-current-tb-g1",
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-tb-g1-lbl",
+                      "textGrowth": "auto",
+                      "content": "节点",
+                      "fontSize": 10,
+                      "fontWeight": "600",
+                      "fill": "#87867f",
+                      "fontFamily": "system-ui"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-add",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-add-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-sib",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-sib-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-parent",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-parent-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-del",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-del-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#b53333"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "scr-current-tb-d1",
+                  "width": 1,
+                  "height": 18,
+                  "cornerRadius": 0,
+                  "fill": "#f0eee6"
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-tb-g2",
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-tb-g2-lbl",
+                      "textGrowth": "auto",
+                      "content": "展开",
+                      "fontSize": 10,
+                      "fontWeight": "600",
+                      "fill": "#87867f",
+                      "fontFamily": "system-ui"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-exp",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-exp-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-col",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-col-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-l1",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-current-tb-l1-t",
+                          "textGrowth": "auto",
+                          "content": "1",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "fill": "#4d4c48",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-l2",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-current-tb-l2-t",
+                          "textGrowth": "auto",
+                          "content": "2",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "fill": "#4d4c48",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-l3",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-current-tb-l3-t",
+                          "textGrowth": "auto",
+                          "content": "3",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "fill": "#4d4c48",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-all",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 40,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-current-tb-all-t",
+                          "textGrowth": "auto",
+                          "content": "全部",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "fill": "#4d4c48",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "scr-current-tb-d2",
+                  "width": 1,
+                  "height": 18,
+                  "cornerRadius": 0,
+                  "fill": "#f0eee6"
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-tb-g3",
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-tb-g3-lbl",
+                      "textGrowth": "auto",
+                      "content": "布局",
+                      "fontSize": 10,
+                      "fontWeight": "600",
+                      "fill": "#87867f",
+                      "fontFamily": "system-ui"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-def",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 40,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "fill": "#e8e6dc",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-current-tb-def-t",
+                          "textGrowth": "auto",
+                          "content": "脑图",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "fill": "#141413",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-right",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 40,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-current-tb-right-t",
+                          "textGrowth": "auto",
+                          "content": "右展",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "fill": "#4d4c48",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-struct",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 40,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-current-tb-struct-t",
+                          "textGrowth": "auto",
+                          "content": "组织",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "fill": "#4d4c48",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-grid",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-grid-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "scr-current-tb-d3",
+                  "width": 1,
+                  "height": 18,
+                  "cornerRadius": 0,
+                  "fill": "#f0eee6"
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-tb-g4",
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-zi",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-zi-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-zo",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-zo-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-ctr",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-ctr-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-read",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-read-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-fit",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-fit-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "scr-current-tb-d4",
+                  "width": 1,
+                  "height": 18,
+                  "cornerRadius": 0,
+                  "fill": "#f0eee6"
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-tb-g5",
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-undo",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-undo-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-tb-redo",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-current-tb-redo-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "rectangle",
+              "id": "scr-current-tb-border",
+              "width": 1280,
+              "height": 1,
+              "cornerRadius": 0,
+              "fill": "#f0eee6"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "scr-current-main",
+          "layout": "horizontal",
+          "width": 1280,
+          "height": 718,
+          "children": [
+            {
+              "type": "frame",
+              "id": "scr-current-canvas",
+              "layout": "none",
+              "width": 1000,
+              "height": 718,
+              "fill": "#f5f4ed",
+              "clip": true,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-root",
+                  "x": 300,
+                  "y": 341,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 132,
+                  "height": 36,
+                  "cornerRadius": 8,
+                  "fill": "#141413",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-root-t",
+                      "textGrowth": "fixed-width",
+                      "content": "乳腺恶性肿瘤",
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                      "fill": "#faf9f5",
+                      "fontFamily": "system-ui",
+                      "width": 112
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-lymph",
+                  "x": 130,
+                  "y": 249,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 72,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#c96442",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-lymph-t",
+                      "textGrowth": "fixed-width",
+                      "content": "淋巴瘤",
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                      "fill": "#faf9f5",
+                      "fontFamily": "system-ui",
+                      "width": 52
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-insitu",
+                  "x": 130,
+                  "y": 429,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 72,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#c96442",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-insitu-t",
+                      "textGrowth": "fixed-width",
+                      "content": "原位癌",
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                      "fill": "#faf9f5",
+                      "fontFamily": "system-ui",
+                      "width": 52
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-primary",
+                  "x": 460,
+                  "y": 343,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 56,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#c96442",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-primary-t",
+                      "textGrowth": "fixed-width",
+                      "content": "原发",
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                      "fill": "#faf9f5",
+                      "fontFamily": "system-ui",
+                      "width": 36
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-ls1",
+                  "x": 20,
+                  "y": 209,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 190,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-ls1-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C84.500 皮肤T细胞淋巴瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 170
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-ls2",
+                  "x": 20,
+                  "y": 244,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 150,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-ls2-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C84.501 蕈样肉芽肿",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 130
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-is1",
+                  "x": 20,
+                  "y": 409,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 170,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-is1-t",
+                      "textGrowth": "fixed-width",
+                      "content": "D05.000 乳房小叶原位癌",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 150
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-is2",
+                  "x": 20,
+                  "y": 444,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 200,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-is2-t",
+                      "textGrowth": "fixed-width",
+                      "content": "D05.100x001 乳房中央部原位癌",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 180
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-c0",
+                  "x": 560,
+                  "y": 40,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-c0-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.800x001 乳腺尾部恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-c1",
+                  "x": 560,
+                  "y": 84,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-c1-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.800x002 乳腺上内象限恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-c2",
+                  "x": 560,
+                  "y": 128,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-c2-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.800x003 乳腺下内象限恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-c3",
+                  "x": 560,
+                  "y": 172,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-c3-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.800x004 乳腺上外象限恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-c4",
+                  "x": 560,
+                  "y": 216,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 2,
+                    "fill": "#d97757"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-c4-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.800x005 异位乳腺恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-c5",
+                  "x": 560,
+                  "y": 260,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-c5-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.800x006 乳腺中央部恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-canvas-c6",
+                  "x": 560,
+                  "y": 304,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-canvas-c6-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.901  乳腺恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "scr-current-canvas-ln0",
+                  "width": 98,
+                  "height": 2,
+                  "cornerRadius": 0,
+                  "fill": "#c96442",
+                  "x": 202,
+                  "y": 358
+                },
+                {
+                  "type": "rectangle",
+                  "id": "scr-current-canvas-ln1",
+                  "width": 98,
+                  "height": 2,
+                  "cornerRadius": 0,
+                  "fill": "#c96442",
+                  "x": 202,
+                  "y": 388
+                },
+                {
+                  "type": "rectangle",
+                  "id": "scr-current-canvas-ln2",
+                  "width": 44,
+                  "height": 2,
+                  "cornerRadius": 0,
+                  "fill": "#c96442",
+                  "x": 516,
+                  "y": 358
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "scr-current-sb",
+              "layout": "vertical",
+              "width": 280,
+              "height": 718,
+              "fill": "#faf9f5",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#f0eee6"
+              },
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "scr-current-sb-top",
+                  "layout": "vertical",
+                  "width": "fill_container",
+                  "height": 682,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "scr-current-sb-eyebrow-w",
+                      "padding": 14,
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-current-sb-eyebrow",
+                          "textGrowth": "auto",
+                          "content": "节点属性",
+                          "fontSize": 10,
+                          "fontWeight": "700",
+                          "fill": "#87867f",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-sb-card-w",
+                      "padding": 14,
+                      "width": "fill_container",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "scr-current-sb-card",
+                          "layout": "horizontal",
+                          "gap": 10,
+                          "width": "fill_container",
+                          "padding": 12,
+                          "cornerRadius": 12,
+                          "fill": "#f5f4ed",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#f0eee6"
+                          },
+                          "children": [
+                            {
+                              "type": "ellipse",
+                              "id": "scr-current-sb-dot",
+                              "width": 8,
+                              "height": 8,
+                              "fill": "#c96442"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "scr-current-sb-card-body",
+                              "layout": "vertical",
+                              "gap": 3,
+                              "width": "fill_container",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "scr-current-sb-card-t",
+                                  "textGrowth": "fixed-width",
+                                  "content": "C50.800x005 异位乳腺恶性肿瘤",
+                                  "fontSize": 15,
+                                  "fontWeight": "500",
+                                  "fill": "#141413",
+                                  "fontFamily": "Georgia",
+                                  "width": 210
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "scr-current-sb-card-m",
+                                  "textGrowth": "auto",
+                                  "content": "层级 2 · 0 个子节点",
+                                  "fontSize": 11,
+                                  "fontWeight": "500",
+                                  "fill": "#5e5d59",
+                                  "fontFamily": "system-ui"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-sb-chips",
+                      "layout": "horizontal",
+                      "gap": 4,
+                      "padding": 14,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "scr-current-sb-c1",
+                          "layout": "horizontal",
+                          "alignItems": "center",
+                          "height": 22,
+                          "padding": 9,
+                          "cornerRadius": 999,
+                          "fill": "#faf9f5",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#f0eee6"
+                          },
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "scr-current-sb-c1-t",
+                              "textGrowth": "auto",
+                              "content": "层级 2",
+                              "fontSize": 11,
+                              "fontWeight": "500",
+                              "fill": "#5e5d59",
+                              "fontFamily": "system-ui"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "scr-current-sb-c2",
+                          "layout": "horizontal",
+                          "alignItems": "center",
+                          "height": 22,
+                          "padding": 9,
+                          "cornerRadius": 999,
+                          "fill": "#faf9f5",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#f0eee6"
+                          },
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "scr-current-sb-c2-t",
+                              "textGrowth": "auto",
+                              "content": "子节点 0",
+                              "fontSize": 11,
+                              "fontWeight": "500",
+                              "fill": "#5e5d59",
+                              "fontFamily": "system-ui"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-current-sb-fields",
+                      "layout": "vertical",
+                      "gap": 12,
+                      "padding": 14,
+                      "width": "fill_container",
+                      "height": 438,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "scr-current-sb-title-f",
+                          "layout": "vertical",
+                          "gap": 5,
+                          "width": "fill_container",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "scr-current-sb-title-l",
+                              "textGrowth": "auto",
+                              "content": "标题",
+                              "fontSize": 10,
+                              "fontWeight": "700",
+                              "fill": "#87867f",
+                              "fontFamily": "system-ui"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "scr-current-sb-title-in",
+                              "layout": "horizontal",
+                              "alignItems": "center",
+                              "width": "fill_container",
+                              "height": 34,
+                              "padding": 11,
+                              "cornerRadius": 8,
+                              "fill": "#ffffff",
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "#f0eee6"
+                              },
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "scr-current-sb-title-in-v",
+                                  "textGrowth": "auto",
+                                  "content": "C50.800x005 异位乳腺恶性肿瘤",
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "fill": "#141413",
+                                  "fontFamily": "system-ui"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "scr-current-sb-note-f",
+                          "layout": "vertical",
+                          "gap": 5,
+                          "width": "fill_container",
+                          "height": "fill_container",
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "scr-current-sb-note-h",
+                              "layout": "horizontal",
+                              "justifyContent": "space_between",
+                              "width": "fill_container",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "scr-current-sb-note-l",
+                                  "textGrowth": "auto",
+                                  "content": "备注",
+                                  "fontSize": 10,
+                                  "fontWeight": "700",
+                                  "fill": "#87867f",
+                                  "fontFamily": "system-ui"
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "scr-current-sb-md",
+                                  "height": 17,
+                                  "padding": 6,
+                                  "cornerRadius": 4,
+                                  "fill": "#e8e6dc",
+                                  "stroke": {
+                                    "align": "inside",
+                                    "thickness": 1,
+                                    "fill": "#e8e6dc"
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "scr-current-sb-md-t",
+                                      "textGrowth": "auto",
+                                      "content": "MD",
+                                      "fontSize": 9,
+                                      "fontWeight": "700",
+                                      "fill": "#4d4c48",
+                                      "fontFamily": "system-ui"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "scr-current-sb-note-in",
+                              "layout": "vertical",
+                              "alignItems": "start",
+                              "width": "fill_container",
+                              "height": 160,
+                              "padding": 10,
+                              "cornerRadius": 8,
+                              "fill": "#ffffff",
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "#f0eee6"
+                              },
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "scr-current-sb-note-in-v",
+                                  "textGrowth": "fixed-width",
+                                  "content": "在此添加备注…留空将移除该节点的备注",
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "fill": "#b0aea5",
+                                  "fontFamily": "system-ui",
+                                  "width": 220
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "scr-current-sb-note-foot",
+                              "layout": "horizontal",
+                              "justifyContent": "space_between",
+                              "width": "fill_container",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "scr-current-sb-stat",
+                                  "textGrowth": "auto",
+                                  "content": "0 字符",
+                                  "fontSize": 10,
+                                  "fontWeight": "500",
+                                  "fill": "#b0aea5",
+                                  "fontFamily": "system-ui"
+                                },
+                                {
+                                  "type": "text",
+                                  "id": "scr-current-sb-tip",
+                                  "textGrowth": "auto",
+                                  "content": "支持 Markdown",
+                                  "fontSize": 10,
+                                  "fontWeight": "500",
+                                  "fill": "#b0aea5",
+                                  "fontFamily": "system-ui"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-current-sb-foot",
+                  "layout": "horizontal",
+                  "gap": 10,
+                  "padding": 10,
+                  "width": "fill_container",
+                  "height": 36,
+                  "fill": "#f5f4ed",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-current-sb-h1",
+                      "textGrowth": "auto",
+                      "content": "F2 编辑",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#87867f",
+                      "fontFamily": "system-ui"
+                    },
+                    {
+                      "type": "text",
+                      "id": "scr-current-sb-h2",
+                      "textGrowth": "auto",
+                      "content": "Tab 子节点",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#87867f",
+                      "fontFamily": "system-ui"
+                    },
+                    {
+                      "type": "text",
+                      "id": "scr-current-sb-h3",
+                      "textGrowth": "auto",
+                      "content": "↵ 同级",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#87867f",
+                      "fontFamily": "system-ui"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "scr-popover",
+      "name": "Popover 方案",
+      "theme": {
+        "mode": "light"
+      },
+      "x": 1340,
+      "y": 48,
+      "width": 1280,
+      "height": 800,
+      "layout": "vertical",
+      "clip": true,
+      "fill": "#f5f4ed",
+      "stroke": {
+        "align": "outside",
+        "thickness": 2,
+        "fill": "#c96442"
+      },
+      "cornerRadius": 12,
+      "children": [
+        {
+          "type": "frame",
+          "id": "scr-popover-bar",
+          "layout": "vertical",
+          "width": 1280,
+          "height": 49,
+          "children": [
+            {
+              "type": "frame",
+              "id": "scr-popover-bar-inner",
+              "layout": "horizontal",
+              "alignItems": "center",
+              "justifyContent": "space_between",
+              "width": 1280,
+              "height": 48,
+              "padding": 12,
+              "fill": "#faf9f5",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "scr-popover-bar-left",
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-bar-file",
+                      "textGrowth": "auto",
+                      "content": "乳腺外科恶性肿瘤.km",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "Georgia"
+                    },
+                    {
+                      "type": "rectangle",
+                      "id": "scr-popover-bar-d0",
+                      "width": 1,
+                      "height": 18,
+                      "cornerRadius": 0,
+                      "fill": "#f0eee6"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-popover-bar-add",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 76,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-popover-bar-add-t",
+                          "textGrowth": "auto",
+                          "content": "+ 子节点",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "fill": "#4d4c48",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-popover-bar-del",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-popover-bar-del-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#b53333"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "rectangle",
+                      "id": "scr-popover-bar-d1",
+                      "width": 1,
+                      "height": 18,
+                      "cornerRadius": 0,
+                      "fill": "#f0eee6"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-popover-bar-undo",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-popover-bar-undo-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-popover-bar-redo",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-popover-bar-redo-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-bar-right",
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "scr-popover-bar-search",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "gap": 6,
+                      "width": 200,
+                      "height": 28,
+                      "padding": 10,
+                      "cornerRadius": 12,
+                      "fill": "#ffffff",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#f0eee6"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-popover-bar-sp",
+                          "textGrowth": "auto",
+                          "content": "搜索标题或备注…",
+                          "fontSize": 11,
+                          "fontWeight": "500",
+                          "fill": "#b0aea5",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-popover-bar-zoom",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-popover-bar-zoom-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-popover-bar-lay",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 64,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-popover-bar-lay-t",
+                          "textGrowth": "auto",
+                          "content": "脑图 ▾",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "fill": "#4d4c48",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-popover-bar-src",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "rectangle",
+                          "id": "scr-popover-bar-src-dot",
+                          "width": 14,
+                          "height": 14,
+                          "cornerRadius": 2,
+                          "fill": "#4d4c48"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-popover-bar-close",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                      "width": 28,
+                      "height": 28,
+                      "cornerRadius": 8,
+                      "fill": "#e8e6dc",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-popover-bar-close-t",
+                          "textGrowth": "auto",
+                          "content": "◀",
+                          "fontSize": 12,
+                          "fontWeight": "500",
+                          "fill": "#4d4c48",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "rectangle",
+              "id": "scr-popover-bar-border",
+              "width": 1280,
+              "height": 1,
+              "cornerRadius": 0,
+              "fill": "#f0eee6"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "scr-popover-main",
+          "layout": "none",
+          "width": 1280,
+          "height": 751,
+          "clip": true,
+          "children": [
+            {
+              "type": "frame",
+              "id": "scr-popover-canvas",
+              "layout": "none",
+              "width": 1280,
+              "height": 751,
+              "fill": "#f5f4ed",
+              "clip": true,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-root",
+                  "x": 300,
+                  "y": 357.5,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 132,
+                  "height": 36,
+                  "cornerRadius": 8,
+                  "fill": "#141413",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-root-t",
+                      "textGrowth": "fixed-width",
+                      "content": "乳腺恶性肿瘤",
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                      "fill": "#faf9f5",
+                      "fontFamily": "system-ui",
+                      "width": 112
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-lymph",
+                  "x": 130,
+                  "y": 265.5,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 72,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#c96442",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-lymph-t",
+                      "textGrowth": "fixed-width",
+                      "content": "淋巴瘤",
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                      "fill": "#faf9f5",
+                      "fontFamily": "system-ui",
+                      "width": 52
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-insitu",
+                  "x": 130,
+                  "y": 445.5,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 72,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#c96442",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-insitu-t",
+                      "textGrowth": "fixed-width",
+                      "content": "原位癌",
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                      "fill": "#faf9f5",
+                      "fontFamily": "system-ui",
+                      "width": 52
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-primary",
+                  "x": 460,
+                  "y": 359.5,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 56,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#c96442",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-primary-t",
+                      "textGrowth": "fixed-width",
+                      "content": "原发",
+                      "fontSize": 12,
+                      "fontWeight": "500",
+                      "fill": "#faf9f5",
+                      "fontFamily": "system-ui",
+                      "width": 36
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-ls1",
+                  "x": 20,
+                  "y": 225.5,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 190,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-ls1-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C84.500 皮肤T细胞淋巴瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 170
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-ls2",
+                  "x": 20,
+                  "y": 260.5,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 150,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-ls2-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C84.501 蕈样肉芽肿",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 130
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-is1",
+                  "x": 20,
+                  "y": 425.5,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 170,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-is1-t",
+                      "textGrowth": "fixed-width",
+                      "content": "D05.000 乳房小叶原位癌",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 150
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-is2",
+                  "x": 20,
+                  "y": 460.5,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 200,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-is2-t",
+                      "textGrowth": "fixed-width",
+                      "content": "D05.100x001 乳房中央部原位癌",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 180
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-c0",
+                  "x": 560,
+                  "y": 40,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-c0-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.800x001 乳腺尾部恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-c1",
+                  "x": 560,
+                  "y": 84,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-c1-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.800x002 乳腺上内象限恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-c2",
+                  "x": 560,
+                  "y": 128,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-c2-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.800x003 乳腺下内象限恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-c3",
+                  "x": 560,
+                  "y": 172,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-c3-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.800x004 乳腺上外象限恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-c4",
+                  "x": 560,
+                  "y": 216,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 2,
+                    "fill": "#d97757"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-c4-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.800x005 异位乳腺恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-c5",
+                  "x": 560,
+                  "y": 260,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-c5-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.800x006 乳腺中央部恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "scr-popover-canvas-c6",
+                  "x": 560,
+                  "y": 304,
+                  "layout": "horizontal",
+                  "alignItems": "center",
+                  "justifyContent": "center",
+                  "width": 260,
+                  "height": 32,
+                  "cornerRadius": 8,
+                  "fill": "#ffffff",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "scr-popover-canvas-c6-t",
+                      "textGrowth": "fixed-width",
+                      "content": "C50.901  乳腺恶性肿瘤",
+                      "fontSize": 11,
+                      "fontWeight": "500",
+                      "fill": "#141413",
+                      "fontFamily": "system-ui",
+                      "width": 240
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "scr-popover-canvas-ln0",
+                  "width": 98,
+                  "height": 2,
+                  "cornerRadius": 0,
+                  "fill": "#c96442",
+                  "x": 202,
+                  "y": 374.5
+                },
+                {
+                  "type": "rectangle",
+                  "id": "scr-popover-canvas-ln1",
+                  "width": 98,
+                  "height": 2,
+                  "cornerRadius": 0,
+                  "fill": "#c96442",
+                  "x": 202,
+                  "y": 404.5
+                },
+                {
+                  "type": "rectangle",
+                  "id": "scr-popover-canvas-ln2",
+                  "width": 44,
+                  "height": 2,
+                  "cornerRadius": 0,
+                  "fill": "#c96442",
+                  "x": 516,
+                  "y": 374.5
+                }
+              ],
+              "x": 0,
+              "y": 0
+            },
+            {
+              "type": "frame",
+              "id": "scr-popover-popover",
+              "x": 840,
+              "y": 232,
+              "layout": "none",
+              "width": 300,
+              "height": 268,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "scr-popover-popover-body-wrap",
+                  "x": 0,
+                  "y": 0,
+                  "layout": "vertical",
+                  "width": 300,
+                  "height": 268,
+                  "cornerRadius": 12,
+                  "fill": "#faf9f5",
+                  "clip": true,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  },
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "offset": {
+                      "x": 0,
+                      "y": 8
+                    },
+                    "blur": 24,
+                    "spread": 0,
+                    "color": "#00000014"
+                  },
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "scr-popover-popover-head",
+                      "layout": "horizontal",
+                      "alignItems": "center",
+                      "justifyContent": "space_between",
+                      "width": 300,
+                      "padding": 12,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-popover-popover-title-lbl",
+                          "textGrowth": "auto",
+                          "content": "节点属性",
+                          "fontSize": 10,
+                          "fontWeight": "700",
+                          "fill": "#87867f",
+                          "fontFamily": "system-ui"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "scr-popover-popover-actions",
+                          "layout": "horizontal",
+                          "gap": 4,
+                          "children": [
+                            {
+                              "type": "frame",
+                              "id": "scr-popover-popover-pin",
+                              "layout": "horizontal",
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                              "width": 52,
+                              "height": 28,
+                              "cornerRadius": 8,
+                              "fill": "#e8e6dc",
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "scr-popover-popover-pin-t",
+                                  "textGrowth": "auto",
+                                  "content": "Pin",
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "fill": "#4d4c48",
+                                  "fontFamily": "system-ui"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "frame",
+                              "id": "scr-popover-popover-close",
+                              "layout": "horizontal",
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                              "width": 28,
+                              "height": 28,
+                              "cornerRadius": 8,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "scr-popover-popover-close-t",
+                                  "textGrowth": "auto",
+                                  "content": "×",
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "fill": "#4d4c48",
+                                  "fontFamily": "system-ui"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-popover-popover-chips",
+                      "layout": "horizontal",
+                      "gap": 4,
+                      "padding": 12,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "scr-popover-popover-c1",
+                          "layout": "horizontal",
+                          "alignItems": "center",
+                          "height": 22,
+                          "padding": 9,
+                          "cornerRadius": 999,
+                          "fill": "#faf9f5",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#f0eee6"
+                          },
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "scr-popover-popover-c1-t",
+                              "textGrowth": "auto",
+                              "content": "层级 2",
+                              "fontSize": 11,
+                              "fontWeight": "500",
+                              "fill": "#5e5d59",
+                              "fontFamily": "system-ui"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "scr-popover-popover-c2",
+                          "layout": "horizontal",
+                          "alignItems": "center",
+                          "height": 22,
+                          "padding": 9,
+                          "cornerRadius": 999,
+                          "fill": "#faf9f5",
+                          "stroke": {
+                            "align": "inside",
+                            "thickness": 1,
+                            "fill": "#f0eee6"
+                          },
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "scr-popover-popover-c2-t",
+                              "textGrowth": "auto",
+                              "content": "子节点 0",
+                              "fontSize": 11,
+                              "fontWeight": "500",
+                              "fill": "#5e5d59",
+                              "fontFamily": "system-ui"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-popover-popover-fields",
+                      "layout": "vertical",
+                      "gap": 10,
+                      "padding": 12,
+                      "width": 300,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "scr-popover-popover-title-f",
+                          "layout": "vertical",
+                          "gap": 5,
+                          "width": 276,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "scr-popover-popover-fl",
+                              "textGrowth": "auto",
+                              "content": "标题",
+                              "fontSize": 10,
+                              "fontWeight": "700",
+                              "fill": "#87867f",
+                              "fontFamily": "system-ui"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "scr-popover-popover-ti",
+                              "layout": "horizontal",
+                              "alignItems": "center",
+                              "width": "fill_container",
+                              "height": 34,
+                              "padding": 11,
+                              "cornerRadius": 8,
+                              "fill": "#ffffff",
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "#f0eee6"
+                              },
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "scr-popover-popover-ti-v",
+                                  "textGrowth": "auto",
+                                  "content": "C50.800x005 异位乳腺恶性肿瘤",
+                                  "fontSize": 12,
+                                  "fontWeight": "500",
+                                  "fill": "#141413",
+                                  "fontFamily": "system-ui"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "scr-popover-popover-note-f",
+                          "layout": "vertical",
+                          "gap": 5,
+                          "width": 276,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "scr-popover-popover-nl",
+                              "textGrowth": "auto",
+                              "content": "备注",
+                              "fontSize": 10,
+                              "fontWeight": "700",
+                              "fill": "#87867f",
+                              "fontFamily": "system-ui"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "scr-popover-popover-add",
+                              "layout": "horizontal",
+                              "alignItems": "center",
+                              "justifyContent": "center",
+                              "width": 276,
+                              "height": 36,
+                              "cornerRadius": 8,
+                              "stroke": {
+                                "align": "inside",
+                                "thickness": 1,
+                                "fill": "#f0eee6"
+                              },
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "scr-popover-popover-add-t",
+                                  "textGrowth": "auto",
+                                  "content": "+ 添加备注",
+                                  "fontSize": 11,
+                                  "fontWeight": "500",
+                                  "fill": "#87867f",
+                                  "fontFamily": "system-ui"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "scr-popover-popover-foot",
+                      "layout": "horizontal",
+                      "justifyContent": "space_between",
+                      "padding": 10,
+                      "width": 300,
+                      "fill": "#f5f4ed",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": 1,
+                        "fill": "#f0eee6"
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "scr-popover-popover-bc",
+                          "textGrowth": "auto",
+                          "content": "根 › 原发 › …005",
+                          "fontSize": 10,
+                          "fontWeight": "500",
+                          "fill": "#5e5d59",
+                          "fontFamily": "system-ui"
+                        },
+                        {
+                          "type": "text",
+                          "id": "scr-popover-popover-esc",
+                          "textGrowth": "auto",
+                          "content": "Esc 关闭",
+                          "fontSize": 10,
+                          "fontWeight": "500",
+                          "fill": "#b0aea5",
+                          "fontFamily": "system-ui"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "rectangle",
+                  "id": "scr-popover-popover-arrow",
+                  "x": -5,
+                  "y": 52,
+                  "width": 10,
+                  "height": 10,
+                  "cornerRadius": 1,
+                  "fill": "#faf9f5",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#f0eee6"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

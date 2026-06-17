@@ -184,6 +184,7 @@ export class MindmapEngine {
 
   public onContentChange: (() => void) | null = null;
   public onSelectionChange: ((node: MindmapNode | null) => void) | null = null;
+  public onViewChange: (() => void) | null = null;
 
   constructor(container: HTMLElement) {
     this._container = container;
@@ -197,6 +198,7 @@ export class MindmapEngine {
       background: { color: P.parchment },
     });
     this.bindGraphEvents();
+    new ResizeObserver(() => this.onViewChange?.()).observe(container);
   }
 
   // ── Getters ───────────────────────────────────────────────────────
@@ -213,6 +215,11 @@ export class MindmapEngine {
     return this.root?.id === id;
   }
 
+  getRootTitle(): string | null {
+    const text = this.root?.text?.trim();
+    return text || null;
+  }
+
   nodeDepth(id: string): number {
     let d = 0;
     let cur = id;
@@ -221,6 +228,24 @@ export class MindmapEngine {
       cur = this.parentMap.get(cur)!.id;
     }
     return d;
+  }
+
+  getSelectedNodeRect(): { x: number; y: number; w: number; h: number } | null {
+    if (!this.selectedId) return null;
+    return this.getNodeContainerRect(this.selectedId);
+  }
+
+  getNodeBreadcrumb(id: string): string[] {
+    const parts: string[] = [];
+    let cur: string | undefined = id;
+    while (cur) {
+      const n = this.nodeMap.get(cur);
+      if (!n) break;
+      const t = n.text?.trim();
+      parts.unshift(t && t.length > 0 ? t : '（无标题）');
+      cur = this.parentMap.has(cur) ? this.parentMap.get(cur)!.id : undefined;
+    }
+    return parts;
   }
 
   // ── Document I/O ──────────────────────────────────────────────────
@@ -863,23 +888,73 @@ export class MindmapEngine {
 
   // ── Tooltip ──────────────────────────────────────────────────────
 
+  private getTooltipHost(): HTMLElement {
+    return this._container.parentElement ?? this._container;
+  }
+
+  private getNoteIconRect(nodeId: string): { x: number; y: number; w: number; h: number } | null {
+    const cell = this.graph.getCellById(nodeId);
+    if (!cell?.isNode()) return null;
+    const view = this.graph.findViewByCell(cell);
+    const svgEl = (view as any)?.container as SVGElement | null;
+    if (!svgEl) return null;
+
+    const host = this.getTooltipHost();
+    const hostRect = host.getBoundingClientRect();
+    const iconEl = svgEl.querySelector('[cursor="help"]');
+    const targetRect = (iconEl ?? svgEl).getBoundingClientRect();
+    return {
+      x: targetRect.left - hostRect.left,
+      y: targetRect.top - hostRect.top,
+      w: targetRect.width,
+      h: targetRect.height,
+    };
+  }
+
+  private positionTooltip(tip: HTMLDivElement, anchor: { x: number; y: number; w: number; h: number }) {
+    const host = this.getTooltipHost();
+    const pad = 10;
+    const gap = 8;
+    const cw = this._container.clientWidth;
+    const ch = this._container.clientHeight;
+    const tw = tip.offsetWidth;
+    const th = tip.offsetHeight;
+
+    const anchorCenterX = anchor.x + anchor.w / 2;
+    const anchorBottom = anchor.y + anchor.h;
+
+    // Prefer below the note icon, centered-ish on the icon.
+    let left = anchorCenterX - tw / 2;
+    let top = anchorBottom + gap;
+
+    if (top + th > ch - pad) {
+      top = anchor.y - th - gap;
+    }
+
+    left = Math.max(pad, Math.min(left, cw - tw - pad));
+    top = Math.max(pad, Math.min(top, ch - th - pad));
+
+    tip.style.left = `${left}px`;
+    tip.style.top = `${top}px`;
+  }
+
   private _showTooltip(nodeId: string) {
     const mn = this.nodeMap.get(nodeId);
     if (!mn?.note) return;
     this._hideTooltip();
-    const rect = this.getNodeContainerRect(nodeId);
-    if (!rect) return;
 
+    const anchor = this.getNoteIconRect(nodeId);
+    if (!anchor) return;
+
+    const host = this.getTooltipHost();
     const tip = document.createElement('div');
     tip.className = 'km-tooltip';
-    // Truncate very long notes before parsing so the resulting HTML
-    // stays compact; CSS still clips visually with max-height.
     const raw = mn.note.length > 1500 ? mn.note.slice(0, 1500) + '\n\n…' : mn.note;
     tip.innerHTML = renderSafeMarkdown(raw);
-    tip.style.left = `${rect.x}px`;
-    tip.style.top = `${rect.y + rect.h + 6}px`;
-    tip.style.maxWidth = `${Math.min(420, Math.max(rect.w + 40, 280))}px`;
-    this._container.appendChild(tip);
+    tip.style.visibility = 'hidden';
+    host.appendChild(tip);
+    this.positionTooltip(tip, anchor);
+    tip.style.visibility = '';
     this._tooltip = tip;
     this._tooltipNodeId = nodeId;
   }
@@ -1307,6 +1382,15 @@ export class MindmapEngine {
     this.graph.on('node:mouseleave', () => {
       this._hideTooltip();
     });
+
+    this.graph.on('scale', () => {
+      this._hideTooltip();
+      this.onViewChange?.();
+    });
+    this.graph.on('translate', () => {
+      this._hideTooltip();
+      this.onViewChange?.();
+    });
   }
 
   // ── Internal: Tree ↔ KM ───────────────────────────────────────────
@@ -1422,6 +1506,7 @@ export class MindmapEngine {
 
     this.applySelectionVisual();
     this._hideTooltip();
+    this.onViewChange?.();
   }
 
   private buildHierData(node: MindmapNode, depth: number): Record<string, unknown> {
