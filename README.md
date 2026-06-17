@@ -1,24 +1,41 @@
 # KityMinder Neo
 
-A VS Code extension for viewing and editing [KityMinder](https://github.com/nickel-org/kityminder) `.km` mindmap files, with `.xmind` import support.
+[English](README.md) | [简体中文](README.zh-CN.md)
+
+A VS Code extension for viewing and editing [fex-team/kityminder](https://github.com/fex-team/kityminder) `.km` mindmap files, including files from 百度脑图. KityMinder Neo keeps `.km` files in VS Code's normal JSON text and diff workflow by default, then gives you an on-demand visual editor when you want to work on the map directly.
+
+It also imports `.xmind` files and converts them to `.km`.
+
+## Screenshots
+
+![KityMinder Neo visual editor](media/kityminder-neo-editor.png)
+
+![Search and node notes](media/kityminder-neo-search-note.png)
 
 ## Features
 
-- Keep `.km` files in VS Code's normal text and diff flows by default
-- Open `.km` files in an interactive visual mindmap editor on demand
-- Add, delete, drag, and inline-edit nodes on a canvas
-- Copy / cut / paste subtrees — works across files
-- Switch between **mind map**, **right-expand**, and **org chart** layouts
-- Search nodes by title or note content
-- Sidebar panel for editing node title and Markdown note
-- Undo / Redo (up to 50 steps)
-- Import `.xmind` files and convert them to `.km`
-- Configurable expand-state normalization on save
-- Preserve JSON-based Source Control diffs for `.km` files
+- Keep `.km` files in the standard VS Code text editor unless you explicitly open the visual editor.
+- Preserve readable JSON diffs for Source Control and compare views.
+- Open a `.km` file with the mindmap editor from Explorer, the editor title menu, or the Command Palette.
+- Add child, sibling, and parent nodes; delete nodes and subtrees.
+- Inline-edit node titles, or edit the selected node title from the node properties panel.
+- Drag nodes to reorder them or move them under another parent.
+- Copy, cut, and paste subtrees, including across files; plain text paste creates a child node.
+- Switch between mind map, right-expand, and org chart layouts.
+- Expand or collapse the selected node, expand all, or expand to level 1, 2, or 3.
+- Zoom in, zoom out, center content, fit to canvas, or use a readable zoom.
+- Search node titles and notes; matching collapsed ancestors are expanded automatically.
+- Edit Markdown notes in the node properties panel.
+- Show note badges on nodes and render note previews through a safer Markdown path.
+- Open the current `.km` source JSON from the visual editor.
+- Undo and redo up to 50 editing steps.
+- Import `.xmind` archives, with warnings for unsupported XMind features.
+- Validate `.km` and `.xmind` inputs with size, node-count, and depth limits.
+- Normalize saved expand state to reduce noisy git diffs when desired.
 
 ## Installation
 
-Search **KityMinder Neo** in the VS Code Extensions panel, or install from the command line:
+Search for **KityMinder Neo** in the VS Code Extensions panel, or install from the command line:
 
 ```bash
 code --install-extension whynpc9.vscode-kityminder-neo
@@ -26,64 +43,65 @@ code --install-extension whynpc9.vscode-kityminder-neo
 
 ## Quick Start
 
-1. Open a `.km` file normally to view or diff its raw JSON in the standard text editor.
-2. To launch the visual editor, use one of these entry points:
-   - Explorer: right-click a `.km` file → *Open Mindmap Editor*
-   - Editor title menu: *Open Mindmap Editor*
-   - Command palette: `KityMinder Neo: Open Mindmap Editor`
-3. **Select** a node by clicking it; navigate with arrow keys.
-4. **Edit** a node by double-clicking or pressing `F2`.
-5. **Add** a child node with `Tab`, a sibling with `Enter`.
-6. **Delete** a node with `Delete` / `Backspace`.
-7. **Import XMind**: right-click a `.xmind` file in Explorer → *Import XMind to KM*.
+1. Open a `.km` file normally to view or diff its raw JSON.
+2. Launch the visual editor from one of these entry points:
+   - Explorer context menu: right-click a `.km` file and choose **Open Mindmap Editor**.
+   - Editor title context menu: choose **Open Mindmap Editor**.
+   - Command Palette: run **KityMinder Neo: Open Mindmap Editor**.
+3. Select a node by clicking it. Use the node properties panel to edit its title and Markdown note.
+4. Double-click a node, or press `F2`, to edit its title inline.
+5. Press `Tab` to add a child node, or `Enter` to add a sibling node.
+6. Import XMind from Explorer by right-clicking a `.xmind` file and choosing **Import XMind to KM**.
 
 ## Diff Behavior
 
-KityMinder Neo intentionally does **not** replace VS Code's normal text/diff experience for `.km` files by default.
+KityMinder Neo intentionally does not replace VS Code's normal text and diff experience for `.km` files by default.
 
-- Opening `.km` from Source Control keeps the standard JSON diff view
-- Opening `.km` from regular file navigation also stays in the text editor unless you explicitly choose the mindmap editor
-- This makes it easier to review structural changes in git using raw JSON
+- Opening `.km` files from Source Control keeps the standard JSON diff view.
+- Opening `.km` files from regular file navigation keeps the text editor unless you explicitly choose the mindmap editor.
+- If the custom editor is asked to resolve a git virtual document or an active text diff side, it falls back to the plain text editor.
 
 ## Keyboard Shortcuts
 
 | Shortcut | Action |
 |---|---|
-| Tab | Add child node and edit |
-| Enter | Add sibling node and edit |
-| Delete / Backspace | Delete selected node and subtree |
-| F2 | Enter inline edit |
-| Escape | Cancel edit |
-| Space | Toggle expand / collapse |
+| `Tab` | Add child node and start editing |
+| `Enter` | Add sibling node and start editing |
+| `Delete` / `Backspace` | Delete selected node and subtree |
+| `F2` | Enter inline title edit |
+| `Escape` | Cancel edit, close search, or close the node panel |
+| `Space` | Toggle expand or collapse |
 | Arrow keys | Navigate between nodes |
-| Alt + Up / Down | Reorder among siblings |
-| Ctrl+C / Cmd+C | Copy |
-| Ctrl+X / Cmd+X | Cut |
-| Ctrl+V / Cmd+V | Paste |
-| Ctrl+Z / Cmd+Z | Undo |
-| Ctrl+Shift+Z / Cmd+Shift+Z | Redo |
-| Ctrl+F / Cmd+F | Search |
-| Ctrl+= / Cmd+= | Zoom in |
-| Ctrl+- / Cmd+- | Zoom out |
-| Ctrl+0 / Cmd+0 | Fit to canvas |
+| `Alt+Up` / `Alt+Down` | Reorder among siblings |
+| `Ctrl/Cmd+C` | Copy selected subtree |
+| `Ctrl/Cmd+X` | Cut selected subtree |
+| `Ctrl/Cmd+V` | Paste as child |
+| `Ctrl/Cmd+Z` | Undo |
+| `Ctrl/Cmd+Shift+Z` | Redo |
+| `Ctrl/Cmd+Y` | Redo |
+| `Ctrl/Cmd+F` | Search titles and notes |
+| `Ctrl/Cmd+=` or `Ctrl/Cmd++` | Zoom in |
+| `Ctrl/Cmd+-` | Zoom out |
+| `Ctrl/Cmd+0` | Fit to canvas |
+| `Ctrl/Cmd+1` | Readable view |
 
 ## Configuration
 
 | Setting | Default | Description |
 |---|---|---|
-| `kityminderNeo.saveExpandState` | `preserve` | How to handle node expand/collapse state when saving |
+| `kityminderNeo.saveExpandState` | `preserve` | Controls how node expand and collapse state is written when saving `.km` files. |
 
 `saveExpandState` values:
 
 | Value | Behavior |
 |---|---|
-| `preserve` | Keep current expand/collapse state (default) |
-| `expandAll` | Remove all `expandState` — fully expanded on save |
-| `level1` | Expand to level 1 on save |
-| `level2` | Expand to level 2 on save |
-| `level3` | Expand to level 3 on save |
+| `preserve` | Keep the current expand and collapse state. |
+| `expandAll` | Save as fully expanded by removing `expandState`. |
+| `level1` | Save with nodes expanded through level 1. |
+| `level2` | Save with nodes expanded through level 2. |
+| `level3` | Save with nodes expanded through level 3. |
 
-> Values other than `preserve` normalize the `expandState` field in the saved JSON while letting you freely expand/collapse in the editor. Useful when you want to keep expand-state changes out of git diffs.
+Values other than `preserve` only normalize the saved JSON. You can still expand and collapse freely while editing.
 
 ## Development
 
@@ -94,8 +112,10 @@ npm run build
 
 Press `F5` in VS Code to launch an Extension Development Host.
 
+Run the main checks:
+
 ```bash
-npm run build && npm test && npx tsc --noEmit
+npm run check
 ```
 
 ## Packaging
@@ -112,7 +132,7 @@ Publish to the Visual Studio Marketplace:
 npm run publish:vsce
 ```
 
-This assumes you have already created the publisher and logged in with `vsce`.
+This assumes the publisher is already created and `vsce` is logged in.
 
 ## License
 

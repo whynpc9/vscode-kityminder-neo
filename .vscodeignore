@@ -5,5 +5,7 @@
 !resources/icon.png
 !LICENSE
 !README.md
+!README.zh-CN.md
 !CHANGELOG.md
 !package.json
+!media/*.png
