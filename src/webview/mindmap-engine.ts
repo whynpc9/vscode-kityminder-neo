@@ -143,6 +143,10 @@ export class MindmapEngine {
   private undoStack: KmDocumentJson[] = [];
   private redoStack: KmDocumentJson[] = [];
   private static readonly MAX_UNDO = 50;
+  private static readonly DRAG_START_DISTANCE = 8;
+  private static readonly VIEW_PADDING = 80;
+  private static readonly READABLE_MIN_SCALE = 0.8;
+  private static readonly READABLE_MAX_SCALE = 1.2;
 
   private _container: HTMLElement;
 
@@ -166,6 +170,8 @@ export class MindmapEngine {
   private _dropIndicator: HTMLDivElement | null = null;
   private _dropTarget: DropTarget | null = null;
   private _dragNodeRects: Map<string, { x: number; y: number; w: number; h: number }> | null = null;
+  private _suppressNextBlankClick = false;
+  private _blankClickSuppressionTimer: number | undefined;
 
   // Tooltip state
   private _tooltip: HTMLDivElement | null = null;
@@ -223,7 +229,7 @@ export class MindmapEngine {
     this.undoStack.length = 0;
     this.redoStack.length = 0;
     this.importDocumentSilent(doc);
-    this.zoomToFit();
+    this.zoomToReadable();
   }
 
   get saveExpandState(): SaveExpandState {
@@ -750,11 +756,46 @@ export class MindmapEngine {
   // ── View ──────────────────────────────────────────────────────────
 
   centerContent() {
-    this.graph.centerContent({ padding: 80 });
+    this.graph.centerContent({ padding: MindmapEngine.VIEW_PADDING });
   }
 
   zoomToFit() {
-    this.graph.zoomToFit({ padding: 80, maxScale: 1.5 });
+    this.graph.zoomToFit({ padding: MindmapEngine.VIEW_PADDING, maxScale: 1.5 });
+  }
+
+  zoomToReadable() {
+    const area = this.graph.getContentArea({ useCellGeometry: true });
+    const viewportW = this._container.clientWidth || 1;
+    const viewportH = this._container.clientHeight || 1;
+    if (!area.width || !area.height || viewportW <= 1 || viewportH <= 1) {
+      this.zoomToFit();
+      return;
+    }
+
+    const padding = MindmapEngine.VIEW_PADDING;
+    const fitScale = Math.min(
+      Math.max(1, viewportW - padding * 2) / area.width,
+      Math.max(1, viewportH - padding * 2) / area.height,
+    );
+    const readableScale = Math.min(
+      MindmapEngine.READABLE_MAX_SCALE,
+      Math.max(MindmapEngine.READABLE_MIN_SCALE, fitScale),
+    );
+
+    this.graph.zoomTo(readableScale);
+    if (fitScale >= MindmapEngine.READABLE_MIN_SCALE) {
+      this.centerContent();
+      return;
+    }
+
+    const rootCell = this.root ? this.graph.getCellById(this.root.id) : null;
+    const focus = rootCell?.getBBox().getCenter() ?? area.getCenter();
+    const xRatio = this._template === 'right' ? 0.32 : 0.5;
+    const yRatio = this._template === 'structure' ? 0.28 : 0.5;
+    this.graph.translate(
+      viewportW * xRatio - focus.x * readableScale,
+      viewportH * yRatio - focus.y * readableScale,
+    );
   }
 
   zoomIn() {
@@ -940,6 +981,7 @@ export class MindmapEngine {
     this._destroyEditOverlay();
     this._hideTooltip();
     this._endDrag(true);
+    this._clearBlankClickSuppression();
     this.graph.dispose();
   }
 
@@ -966,7 +1008,8 @@ export class MindmapEngine {
     const dy = e.clientY - this._drag.startY;
 
     if (!this._drag.active) {
-      if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;
+      const threshold = MindmapEngine.DRAG_START_DISTANCE;
+      if (dx * dx + dy * dy < threshold * threshold) return;
       this._drag.active = true;
       this._startDragVisual();
     }
@@ -1178,6 +1221,29 @@ export class MindmapEngine {
 
   // ── Internal: Graph events ────────────────────────────────────────
 
+  private _armBlankClickSuppression() {
+    this._suppressNextBlankClick = true;
+    window.clearTimeout(this._blankClickSuppressionTimer);
+
+    const clearAfterClick = () => {
+      window.clearTimeout(this._blankClickSuppressionTimer);
+      this._blankClickSuppressionTimer = window.setTimeout(() => {
+        this._clearBlankClickSuppression();
+      }, 0);
+    };
+
+    document.addEventListener('mouseup', clearAfterClick, { once: true });
+    this._blankClickSuppressionTimer = window.setTimeout(() => {
+      this._clearBlankClickSuppression();
+    }, 1000);
+  }
+
+  private _clearBlankClickSuppression() {
+    window.clearTimeout(this._blankClickSuppressionTimer);
+    this._blankClickSuppressionTimer = undefined;
+    this._suppressNextBlankClick = false;
+  }
+
   private bindGraphEvents() {
     this.graph.on('node:click', ({ node }: any) => {
       if (this._drag?.active) return;
@@ -1192,13 +1258,26 @@ export class MindmapEngine {
     });
 
     this.graph.on('blank:click', () => {
+      if (this._suppressNextBlankClick) {
+        this._clearBlankClickSuppression();
+        return;
+      }
       if (this._editingId) this.commitEdit();
       this.selectNode(null);
     });
 
     this.graph.on('node:mousedown', ({ node, e }: any) => {
-      this._hideTooltip();
       const evt = e.originalEvent ?? e;
+      const button = typeof evt.button === 'number' ? evt.button : 0;
+      if (button !== 0) return;
+
+      this._hideTooltip();
+      this._armBlankClickSuppression();
+      if (this._editingId && this._editingId !== node.id) {
+        this.commitEdit();
+      }
+      this.selectNode(node.id);
+
       const clientX = evt.clientX ?? 0;
       const clientY = evt.clientY ?? 0;
       this._initDrag(node.id, clientX, clientY);

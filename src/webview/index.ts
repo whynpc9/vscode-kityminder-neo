@@ -67,6 +67,7 @@ class App {
     this.btn('btn-zoom-in', () => this.engine.zoomIn());
     this.btn('btn-zoom-out', () => this.engine.zoomOut());
     this.btn('btn-center', () => this.engine.centerContent());
+    this.btn('btn-zoom-readable', () => this.engine.zoomToReadable());
     this.btn('btn-zoom-fit', () => this.engine.zoomToFit());
     this.btn('btn-undo', () => this.engine.undo());
     this.btn('btn-redo', () => this.engine.redo());
@@ -114,6 +115,8 @@ class App {
         e.preventDefault(); this.engine.zoomIn();
       } else if (mod && e.key === '-') {
         e.preventDefault(); this.engine.zoomOut();
+      } else if (mod && e.key === '1') {
+        e.preventDefault(); this.engine.zoomToReadable();
       } else if (mod && e.key === '0') {
         e.preventDefault(); this.engine.zoomToFit();
       } else if (mod && e.key === 'z' && !e.shiftKey) {
