@@ -3,6 +3,7 @@ import './styles.css';
 import { parseKmDocument, stringifyKmDocument } from '../shared/km';
 import type { HostToWebviewMessage, WebviewToHostMessage } from '../shared/protocol';
 import { MindmapEngine, type MindmapNode, type TemplateType, type SearchResult } from './mindmap-engine';
+import { renderSafeMarkdown } from './safeMarkdown';
 
 declare const acquireVsCodeApi: () => {
   postMessage(message: WebviewToHostMessage): void;
@@ -20,6 +21,12 @@ class App {
   private readonly titleInput = this.el<HTMLInputElement>('node-title');
   private readonly noteInput = this.el<HTMLTextAreaElement>('node-note');
   private readonly noteStats = this.el<HTMLSpanElement>('note-stats');
+  private readonly nodeName = this.el<HTMLDivElement>('node-name');
+  private readonly notePreview = this.el<HTMLDivElement>('node-preview');
+  private readonly noteTabs = this.el<HTMLDivElement>('note-tabs');
+  private readonly noteToolbar = this.el<HTMLDivElement>('note-toolbar');
+  private readonly segLevel = this.el<HTMLDivElement>('seg-level');
+  private readonly zoomValue = this.el<HTMLButtonElement>('btn-zoom-value');
   private readonly canvasArea = this.el<HTMLDivElement>('canvas-area');
   private readonly popover = this.el<HTMLDivElement>('node-popover');
   private readonly popoverPinBtn = this.el<HTMLButtonElement>('btn-popover-pin');
@@ -39,6 +46,7 @@ class App {
   private popoverPinned = false;
   private selectedNodeId: string | null = null;
   private filePath = '';
+  private noteTab: 'edit' | 'preview' = 'edit';
 
   bootstrap() {
     this.engine = new MindmapEngine(this.container);
@@ -48,6 +56,7 @@ class App {
       this.scheduleSync();
     };
     this.engine.onSelectionChange = (node) => this.refreshSelection(node);
+    this.engine.onViewChange = () => this.updateZoomDisplay();
     this.bindUi();
     window.addEventListener('message', (e: MessageEvent<HostToWebviewMessage>) =>
       this.handleHost(e.data),
@@ -62,15 +71,16 @@ class App {
     this.btn('btn-add-sibling', () => this.engine.addSibling('新节点'));
     this.btn('btn-add-parent', () => this.engine.addParent('新节点'));
     this.btn('btn-delete', () => this.engine.removeSelected());
-    this.btn('btn-expand', () => this.engine.expand());
-    this.btn('btn-collapse', () => this.engine.collapse());
-    this.btn('btn-expand-all', () => this.engine.expandAll());
-    this.btn('btn-level-1', () => this.engine.expandToLevel(1));
-    this.btn('btn-level-2', () => this.engine.expandToLevel(2));
-    this.btn('btn-level-3', () => this.engine.expandToLevel(3));
+    this.btn('btn-expand', () => { this.engine.expand(); this.setActiveLevel(null); });
+    this.btn('btn-collapse', () => { this.engine.collapse(); this.setActiveLevel(null); });
+    this.btn('btn-expand-all', () => { this.engine.expandAll(); this.setActiveLevel('all'); });
+    this.btn('btn-level-1', () => { this.engine.expandToLevel(1); this.setActiveLevel('1'); });
+    this.btn('btn-level-2', () => { this.engine.expandToLevel(2); this.setActiveLevel('2'); });
+    this.btn('btn-level-3', () => { this.engine.expandToLevel(3); this.setActiveLevel('3'); });
     this.btn('btn-reset-layout', () => this.engine.resetLayout());
     this.btn('btn-zoom-in', () => this.engine.zoomIn());
     this.btn('btn-zoom-out', () => this.engine.zoomOut());
+    this.btn('btn-zoom-value', () => this.engine.zoomToReadable());
     this.btn('btn-center', () => this.engine.centerContent());
     this.btn('btn-zoom-readable', () => this.engine.zoomToReadable());
     this.btn('btn-zoom-fit', () => this.engine.zoomToFit());
@@ -198,6 +208,7 @@ class App {
     let titleTimer: number | undefined;
     this.titleInput.addEventListener('input', () => {
       if (this.updatingForm) return;
+      this.nodeName.textContent = this.titleInput.value.trim() || '（无标题）';
       window.clearTimeout(titleTimer);
       titleTimer = window.setTimeout(() => this.engine.updateText(this.titleInput.value), 150);
     });
@@ -205,6 +216,7 @@ class App {
     let noteTimer: number | undefined;
     this.noteInput.addEventListener('input', () => {
       this.updateNoteStats();
+      if (this.noteTab === 'preview') this.renderNotePreview();
       if (this.updatingForm) return;
       window.clearTimeout(noteTimer);
       noteTimer = window.setTimeout(() => {
@@ -212,6 +224,102 @@ class App {
         this.engine.updateNote(v.length > 0 ? this.noteInput.value : null);
       }, 150);
     });
+
+    this.noteTabs.addEventListener('click', (e) => {
+      const t = (e.target as HTMLElement).closest('.md-tab') as HTMLElement | null;
+      const tab = t?.dataset.tab;
+      if (tab === 'edit' || tab === 'preview') this.setNoteTab(tab);
+    });
+
+    this.noteToolbar.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest('.md-btn') as HTMLElement | null;
+      if (b?.dataset.md) this.applyMarkdown(b.dataset.md);
+    });
+  }
+
+  // ── Expand-level segmented control ──────────────────────────────
+
+  private setActiveLevel(level: string | null) {
+    for (const el of this.segLevel.querySelectorAll<HTMLElement>('.seg-item[data-level]')) {
+      el.classList.toggle('active', level !== null && el.dataset.level === level);
+    }
+  }
+
+  // ── Markdown note editor ────────────────────────────────────────
+
+  private setNoteTab(tab: 'edit' | 'preview') {
+    this.noteTab = tab;
+    for (const el of this.noteTabs.querySelectorAll<HTMLElement>('.md-tab')) {
+      el.classList.toggle('active', el.dataset.tab === tab);
+    }
+    if (tab === 'preview') {
+      this.renderNotePreview();
+      this.noteInput.classList.add('hidden');
+      this.notePreview.classList.remove('hidden');
+    } else {
+      this.notePreview.classList.add('hidden');
+      this.noteInput.classList.remove('hidden');
+    }
+  }
+
+  private renderNotePreview() {
+    const value = this.noteInput.value;
+    if (!value.trim()) {
+      this.notePreview.innerHTML = '<p class="note-empty">暂无备注</p>';
+      return;
+    }
+    this.notePreview.innerHTML = renderSafeMarkdown(value);
+  }
+
+  private applyMarkdown(kind: string) {
+    if (this.noteInput.disabled) return;
+    if (this.noteTab !== 'edit') this.setNoteTab('edit');
+    this.noteInput.focus();
+
+    const start = this.noteInput.selectionStart;
+    const end = this.noteInput.selectionEnd;
+    const value = this.noteInput.value;
+    const selected = value.slice(start, end);
+
+    const wraps: Record<string, [string, string]> = {
+      b: ['**', '**'],
+      i: ['*', '*'],
+      code: ['`', '`'],
+    };
+    const prefixes: Record<string, string> = {
+      h: '# ',
+      ul: '- ',
+      ol: '1. ',
+      todo: '- [ ] ',
+    };
+
+    if (wraps[kind]) {
+      const [open, close] = wraps[kind];
+      const inner = selected || '文本';
+      this.noteInput.value = value.slice(0, start) + open + inner + close + value.slice(end);
+      const caret = start + open.length;
+      this.noteInput.setSelectionRange(caret, caret + inner.length);
+    } else if (kind === 'link') {
+      const inner = selected || '链接';
+      this.noteInput.value = value.slice(0, start) + '[' + inner + '](https://)' + value.slice(end);
+      const caret = start + 1;
+      this.noteInput.setSelectionRange(caret, caret + inner.length);
+    } else if (prefixes[kind]) {
+      const lineStart = value.lastIndexOf('\n', start - 1) + 1;
+      this.noteInput.value = value.slice(0, lineStart) + prefixes[kind] + value.slice(lineStart);
+      const caret = start + prefixes[kind].length;
+      this.noteInput.setSelectionRange(caret, caret);
+    } else {
+      return;
+    }
+
+    this.noteInput.dispatchEvent(new Event('input'));
+  }
+
+  private updateZoomDisplay() {
+    const zoom = this.engine.getZoom();
+    if (!Number.isFinite(zoom) || zoom <= 0) return;
+    this.zoomValue.textContent = `${Math.round(zoom * 100)}%`;
   }
 
   // ── Host messaging ──────────────────────────────────────────────
@@ -278,13 +386,17 @@ class App {
     this.updatingForm = false;
 
     if (!node) {
-      this.breadcrumb.textContent = '';
+      this.nodeName.textContent = '未选择节点';
+      this.breadcrumb.innerHTML = '';
+      this.setNoteTab('edit');
       this.hidePopover();
       this.updateNoteStats();
       return;
     }
 
-    this.breadcrumb.textContent = this.formatBreadcrumb(this.engine.getNodeBreadcrumb(node.id));
+    this.nodeName.textContent = node.text?.trim() || '（无标题）';
+    this.renderBreadcrumb(this.engine.getNodeBreadcrumb(node.id));
+    this.setNoteTab('edit');
     this.updateNoteStats();
     this.showPopover();
   }
@@ -292,11 +404,20 @@ class App {
   private refreshNodeContext() {
     const node = this.engine.getSelectedNode();
     if (!node) return;
-    this.breadcrumb.textContent = this.formatBreadcrumb(this.engine.getNodeBreadcrumb(node.id));
+    this.nodeName.textContent = node.text?.trim() || '（无标题）';
+    this.renderBreadcrumb(this.engine.getNodeBreadcrumb(node.id));
   }
 
-  private formatBreadcrumb(parts: string[]): string {
-    return parts.join(' › ');
+  private renderBreadcrumb(parts: string[]) {
+    const ancestors = parts.slice(0, -1);
+    if (ancestors.length === 0) {
+      this.breadcrumb.innerHTML = '<span class="bc bc-root">根节点</span>';
+      return;
+    }
+    const sep = '<span class="bc-sep" aria-hidden="true">›</span>';
+    this.breadcrumb.innerHTML = ancestors
+      .map((part) => `<span class="bc">${esc(part)}</span>`)
+      .join(sep);
   }
 
   private showPopover() {

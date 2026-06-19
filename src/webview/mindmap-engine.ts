@@ -831,6 +831,10 @@ export class MindmapEngine {
     this.graph.zoom(-0.1, { absolute: false });
   }
 
+  getZoom(): number {
+    return this.graph.zoom();
+  }
+
   expand(id?: string) {
     const node = this.nodeMap.get(id ?? this.selectedId ?? '');
     if (!node || !node.collapsed) return;
