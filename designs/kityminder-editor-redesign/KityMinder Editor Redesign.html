@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KityMinder Neo · 界面重设计</title>
+<style>
+  /* ── Claude / Anthropic–inspired warm palette (from src/webview/styles.css) ── */
+  :root {
+    --cl-near-black: #141413;
+    --cl-terracotta: #c96442;
+    --cl-coral: #d97757;
+    --cl-coral-deep: #b85a3b;
+
+    --cl-parchment: #f5f4ed;
+    --cl-ivory: #faf9f5;
+    --cl-white: #ffffff;
+    --cl-warm-sand: #e8e6dc;
+    --cl-dark-surface: #30302e;
+
+    --cl-charcoal: #4d4c48;
+    --cl-olive: #5e5d59;
+    --cl-stone: #87867f;
+    --cl-dark-warm: #3d3d3a;
+    --cl-warm-silver: #b0aea5;
+
+    --cl-border-cream: #f0eee6;
+    --cl-border-warm: #e8e6dc;
+    --cl-ring-warm: #d1cfc5;
+    --cl-ring-deep: #c2c0b6;
+
+    --cl-focus: #3898ec;
+    --cl-error: #b53333;
+    --cl-success: #5a8a52;
+
+    --font-serif: Georgia, "Songti SC", "Noto Serif SC", "Times New Roman", serif;
+    --font-ui: system-ui, -apple-system, "SF Pro Text", "PingFang SC", "Noto Sans SC", "Segoe UI", sans-serif;
+    --font-mono: "SF Mono", "Fira Code", "Cascadia Code", "PingFang SC", monospace;
+
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-pill: 999px;
+
+    --shadow-ring: 0px 0px 0px 1px var(--cl-ring-warm);
+    --shadow-whisper: 0px 4px 24px rgba(0, 0, 0, 0.05);
+    --shadow-panel: 0 10px 40px rgba(20, 20, 19, 0.14), 0 2px 8px rgba(20, 20, 19, 0.06);
+    --shadow-pop: 0 8px 28px rgba(20, 20, 19, 0.16);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: #e7e4d8;
+    color: var(--cl-near-black);
+    font: 13px/1.5 var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    position: relative;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+  ::selection { background: rgba(201,100,66,.18); }
+
+  /* ── Stage / window frame (fixed desktop size, JS scale-to-fit) ──── */
+  .stage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1280px;
+    transform-origin: center center;
+    transform: translate(-50%, -50%);
+  }
+
+  .window {
+    position: relative;
+    width: 100%;
+    height: 800px;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    background: var(--cl-parchment);
+    box-shadow: var(--shadow-panel);
+    border: 1px solid rgba(20,20,19,.06);
+  }
+
+  /* VS Code-ish tab + breadcrumb strip */
+  .chrome-tabs {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 10px;
+    gap: 8px;
+    background: #ece9df;
+    border-bottom: 1px solid var(--cl-border-warm);
+    flex-shrink: 0;
+  }
+  .chrome-tab {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 28px;
+    padding: 0 10px 0 11px;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    background: var(--cl-parchment);
+    font-size: 12px;
+    color: var(--cl-charcoal);
+    box-shadow: 0 -1px 0 var(--cl-border-warm) inset;
+  }
+  .chrome-tab .km-dot {
+    width: 13px; height: 13px; border-radius: 3px;
+    background: var(--cl-near-black); color: var(--cl-ivory);
+    font-size: 6.5px; font-weight: 800; display: grid; place-items: center;
+  }
+  .chrome-tab .close { color: var(--cl-stone); font-size: 13px; margin-left: 2px; }
+  .chrome-spacer { flex: 1; }
+  .chrome-dots { display: flex; gap: 14px; color: var(--cl-stone); }
+  .chrome-dots svg { width: 15px; height: 15px; }
+
+  .breadcrumb-strip {
+    display: flex; align-items: center; gap: 6px;
+    height: 26px; padding: 0 14px;
+    background: var(--cl-parchment);
+    border-bottom: 1px solid var(--cl-border-cream);
+    font-size: 11.5px; color: var(--cl-stone);
+    flex-shrink: 0;
+  }
+  .breadcrumb-strip svg { width: 13px; height: 13px; }
+  .breadcrumb-strip .crumb-sep { opacity: .5; }
+
+  /* ════════════════════════════════════════════════════════════════
+     TOP BAR (toolbar) — focus area
+     ════════════════════════════════════════════════════════════════ */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 52px;
+    padding: 0 12px;
+    background: var(--cl-ivory);
+    border-bottom: 1px solid var(--cl-border-cream);
+    flex-shrink: 0;
+    min-width: 0;
+  }
+
+  .brand { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+  .logo {
+    display: grid; place-items: center;
+    width: 30px; height: 30px;
+    border-radius: var(--radius-md);
+    background: var(--cl-near-black); color: var(--cl-ivory);
+    font-size: 10px; font-weight: 800; letter-spacing: .04em;
+  }
+  .brand-meta { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
+  .brand-title {
+    font-family: var(--font-serif); font-size: 14px; font-weight: 600;
+    color: var(--cl-near-black); white-space: nowrap;
+  }
+  .brand-sub { font-size: 10.5px; color: var(--cl-stone); }
+  .brand-saved { color: var(--cl-success); }
+
+  .v-divider { width: 1px; height: 24px; background: var(--cl-border-warm); flex-shrink: 0; }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .tgroup { display: flex; flex-direction: column; gap: 3px; }
+  .tgroup-label {
+    font-size: 9px; font-weight: 700; color: var(--cl-warm-silver);
+    text-transform: uppercase; letter-spacing: .1em; padding-left: 3px;
+    user-select: none; white-space: nowrap;
+  }
+  .tgroup-row { display: flex; align-items: center; gap: 3px; }
+
+  /* base buttons */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    height: 30px; min-width: 30px; padding: 0 9px;
+    border-radius: var(--radius-md);
+    color: var(--cl-charcoal);
+    font-size: 12px; font-weight: 550; white-space: nowrap;
+    transition: background 120ms ease, box-shadow 120ms ease, color 120ms ease, transform 80ms ease;
+    user-select: none;
+  }
+  .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .btn:hover { background: var(--cl-warm-sand); box-shadow: var(--shadow-ring); }
+  .btn:active { transform: translateY(.5px); background: var(--cl-border-warm); }
+  .icon-btn { padding: 0; width: 30px; }
+  .btn.danger { color: var(--cl-error); }
+  .btn.danger:hover { background: rgba(181,51,51,.08); box-shadow: 0 0 0 1px rgba(181,51,51,.18); }
+
+  .btn.accent {
+    background: var(--cl-terracotta); color: var(--cl-ivory);
+    box-shadow: 0 1px 2px rgba(201,100,66,.35);
+  }
+  .btn.accent:hover { background: var(--cl-coral-deep); box-shadow: 0 2px 8px rgba(201,100,66,.4); }
+
+  /* split button (Variant B primary add) */
+  .split {
+    display: inline-flex; align-items: stretch;
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 2px rgba(201,100,66,.35);
+    overflow: hidden;
+  }
+  .split .split-main {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 30px; padding: 0 12px 0 11px;
+    background: var(--cl-terracotta); color: var(--cl-ivory);
+    font-size: 12px; font-weight: 600; white-space: nowrap;
+  }
+  .split .split-main:hover { background: var(--cl-coral-deep); }
+  .split .split-caret {
+    display: grid; place-items: center; width: 24px;
+    background: var(--cl-coral-deep); color: var(--cl-ivory);
+    border-left: 1px solid rgba(255,255,255,.18);
+  }
+  .split .split-caret:hover { background: #a04e30; }
+  .split .split-caret svg { width: 13px; height: 13px; }
+
+  /* segmented control */
+  .seg {
+    display: inline-flex; align-items: center;
+    padding: 2px; gap: 2px;
+    background: var(--cl-parchment);
+    border: 1px solid var(--cl-border-warm);
+    border-radius: var(--radius-md);
+  }
+  .seg-item {
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    height: 24px; min-width: 26px; padding: 0 9px;
+    border-radius: 6px;
+    font-size: 12px; font-weight: 550; color: var(--cl-olive);
+    white-space: nowrap;
+    transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
+  }
+  .seg-item svg { width: 15px; height: 15px; }
+  .seg-item:hover { color: var(--cl-near-black); }
+  .seg-item.active {
+    background: var(--cl-white); color: var(--cl-near-black);
+    box-shadow: 0 1px 2px rgba(20,20,19,.1), var(--shadow-ring);
+    font-weight: 600;
+  }
+  .seg-item.active.accent-active {
+    background: var(--cl-near-black); color: var(--cl-ivory);
+    box-shadow: 0 1px 2px rgba(20,20,19,.25);
+  }
+
+  /* zoom stepper */
+  .stepper {
+    display: inline-flex; align-items: center;
+    background: var(--cl-parchment);
+    border: 1px solid var(--cl-border-warm);
+    border-radius: var(--radius-md);
+    height: 30px; overflow: hidden;
+  }
+  .stepper button {
+    display: grid; place-items: center; width: 28px; height: 100%;
+    color: var(--cl-charcoal);
+  }
+  .stepper button:hover { background: var(--cl-warm-sand); }
+  .stepper button svg { width: 15px; height: 15px; }
+  .stepper .zoom-val {
+    min-width: 46px; text-align: center;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--cl-charcoal);
+    border-left: 1px solid var(--cl-border-warm);
+    border-right: 1px solid var(--cl-border-warm);
+    line-height: 28px;
+    cursor: pointer;
+  }
+  .stepper .zoom-val:hover { background: var(--cl-warm-sand); }
+
+  .toolbar-spacer { flex: 1; min-width: 8px; }
+  .actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+  /* overflow menu */
+  .menu-wrap { position: relative; }
+  .menu {
+    position: absolute; top: calc(100% + 8px); right: 0;
+    min-width: 192px; padding: 6px;
+    background: var(--cl-ivory);
+    border: 1px solid var(--cl-border-cream);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-pop);
+    z-index: 200;
+    opacity: 0; transform: translateY(-6px) scale(.98); pointer-events: none;
+    transition: opacity 130ms ease, transform 130ms ease;
+  }
+  .menu.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+  .menu-item {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    height: 32px; padding: 0 9px; border-radius: var(--radius-sm);
+    font-size: 12.5px; color: var(--cl-charcoal); text-align: left;
+  }
+  .menu-item:hover { background: var(--cl-warm-sand); }
+  .menu-item svg { width: 15px; height: 15px; color: var(--cl-stone); }
+  .menu-item .mi-kbd {
+    margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--cl-warm-silver);
+  }
+  .menu-sep { height: 1px; background: var(--cl-border-cream); margin: 5px 4px; }
+
+  /* command hint pill (Variant B) */
+  .cmd-hint {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 30px; padding: 0 11px;
+    border-radius: var(--radius-pill);
+    background: var(--cl-parchment);
+    border: 1px solid var(--cl-border-warm);
+    color: var(--cl-stone); font-size: 11.5px;
+  }
+  .cmd-hint kbd {
+    font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+    padding: 1px 5px; border-radius: 4px;
+    background: var(--cl-white); border: 1px solid var(--cl-border-warm); color: var(--cl-charcoal);
+  }
+  .cmd-hint svg { width: 14px; height: 14px; }
+
+  /* ════════════════════════════════════════════════════════════════
+     CANVAS (mind-map context)
+     ════════════════════════════════════════════════════════════════ */
+  .main { flex: 1; min-height: 0; display: flex; position: relative; }
+  .canvas {
+    flex: 1; position: relative; overflow: hidden;
+    background:
+      radial-gradient(circle at 1px 1px, rgba(20,20,19,.05) 1px, transparent 0);
+    background-size: 22px 22px;
+    background-color: var(--cl-parchment);
+    transition: margin-right 220ms cubic-bezier(.22,.61,.36,1);
+  }
+  .canvas.pinned { margin-right: 332px; }
+
+  .map { position: absolute; inset: 0; }
+  .map svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+
+  .node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    background: var(--cl-white);
+    border: 1px solid var(--cl-border-warm);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    font-size: 11.5px; line-height: 1.35; color: var(--cl-charcoal);
+    box-shadow: 0 1px 2px rgba(20,20,19,.04);
+    max-width: 150px;
+    text-align: center;
+  }
+  .node .note-badge {
+    position: absolute; top: -7px; right: -7px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--cl-coral); color: #fff;
+    display: grid; place-items: center; font-size: 8px; font-weight: 700;
+    box-shadow: 0 1px 3px rgba(201,100,66,.4);
+  }
+  .node.root {
+    background: var(--cl-near-black); color: var(--cl-ivory);
+    border-color: var(--cl-near-black); font-size: 14px; font-weight: 600;
+    padding: 12px 20px; border-radius: var(--radius-lg);
+    box-shadow: 0 6px 18px rgba(20,20,19,.22);
+  }
+  .node.branch {
+    background: var(--cl-terracotta); color: var(--cl-ivory);
+    border-color: var(--cl-terracotta); font-weight: 600; font-size: 12.5px;
+    box-shadow: 0 2px 8px rgba(201,100,66,.28);
+  }
+  .node.selected {
+    border-color: var(--cl-coral);
+    box-shadow: 0 0 0 2px var(--cl-coral), 0 6px 18px rgba(201,100,66,.22);
+    z-index: 5;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     NODE PROPERTY PANEL — focus area
+     ════════════════════════════════════════════════════════════════ */
+  .panel {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 316px;
+    max-height: calc(100% - 32px);
+    display: flex; flex-direction: column;
+    background: var(--cl-ivory);
+    border: 1px solid var(--cl-border-cream);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-whisper), var(--shadow-pop);
+    overflow: hidden;
+    z-index: 60;
+    transition: top 220ms cubic-bezier(.22,.61,.36,1),
+                right 220ms cubic-bezier(.22,.61,.36,1),
+                bottom 220ms cubic-bezier(.22,.61,.36,1),
+                width 220ms cubic-bezier(.22,.61,.36,1),
+                max-height 220ms cubic-bezier(.22,.61,.36,1),
+                border-radius 220ms ease;
+  }
+  .panel.pinned {
+    top: 0; right: 0; bottom: 0;
+    width: 332px;
+    max-height: none;
+    border-radius: 0;
+    border-top: none; border-right: none; border-bottom: none;
+    box-shadow: -6px 0 28px rgba(20,20,19,.08);
+  }
+
+  /* panel header */
+  .panel-head {
+    flex-shrink: 0;
+    padding: 13px 14px 12px;
+    background: linear-gradient(180deg, var(--cl-white), var(--cl-ivory));
+    border-bottom: 1px solid var(--cl-border-cream);
+  }
+  .panel-head-top {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+  }
+  .panel-eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--cl-stone);
+  }
+  .panel-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cl-coral); }
+  .panel-head-actions { margin-left: auto; display: flex; gap: 2px; }
+  .panel-head-actions .btn { height: 26px; min-width: 26px; }
+  .panel-head-actions .btn svg { width: 15px; height: 15px; }
+
+  .node-identity { display: flex; align-items: flex-start; gap: 10px; }
+  .node-swatch {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: var(--radius-md);
+    background: var(--cl-terracotta);
+    display: grid; place-items: center; color: #fff;
+    box-shadow: 0 1px 3px rgba(201,100,66,.4);
+    margin-top: 1px;
+  }
+  .node-swatch svg { width: 16px; height: 16px; }
+  .node-identity-text { min-width: 0; flex: 1; }
+  .node-name {
+    font-family: var(--font-serif); font-size: 15px; font-weight: 600; line-height: 1.3;
+    color: var(--cl-near-black); word-break: break-word;
+  }
+  .node-breadcrumb {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 3px;
+    margin-top: 5px; font-size: 10.5px; color: var(--cl-stone);
+  }
+  .node-breadcrumb .bc { color: var(--cl-olive); }
+  .node-breadcrumb .bc.current { color: var(--cl-terracotta); font-weight: 600; }
+  .node-breadcrumb svg { width: 11px; height: 11px; opacity: .55; }
+
+  /* meta chips */
+  .meta-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 22px; padding: 0 8px;
+    border-radius: var(--radius-pill);
+    background: var(--cl-parchment);
+    border: 1px solid var(--cl-border-warm);
+    font-size: 10.5px; color: var(--cl-charcoal); font-weight: 550;
+  }
+  .chip svg { width: 12px; height: 12px; color: var(--cl-stone); }
+  .chip b { font-family: var(--font-mono); font-weight: 700; font-size: 10px; }
+  .chip.code { font-family: var(--font-mono); letter-spacing: .02em; }
+
+  /* panel body */
+  .panel-body {
+    flex: 1; min-height: 0; overflow-y: auto;
+    padding: 14px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .panel-body::-webkit-scrollbar { width: 8px; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--cl-ring-warm); border-radius: 4px; border: 2px solid var(--cl-ivory); }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .field-head label {
+    font-size: 10px; font-weight: 700; color: var(--cl-stone);
+    text-transform: uppercase; letter-spacing: .09em;
+  }
+  .field input.title-input {
+    width: 100%;
+    border: 1px solid var(--cl-border-cream);
+    border-radius: var(--radius-md);
+    background: var(--cl-white);
+    padding: 9px 11px;
+    font-size: 13px; font-weight: 500; color: var(--cl-near-black);
+    transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+  }
+  .field input.title-input:focus {
+    outline: none; border-color: var(--cl-coral); background: var(--cl-ivory);
+    box-shadow: 0 0 0 3px rgba(217,119,87,.14);
+  }
+
+  /* note editor */
+  .note-field { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 0; }
+  .note-toolbar {
+    display: flex; align-items: center; gap: 1px;
+    padding: 4px;
+    background: var(--cl-parchment);
+    border: 1px solid var(--cl-border-cream);
+    border-bottom: none;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    flex-wrap: wrap;
+  }
+  .md-btn {
+    display: grid; place-items: center;
+    width: 27px; height: 25px; border-radius: 5px;
+    color: var(--cl-olive); font-size: 12px; font-weight: 700;
+  }
+  .md-btn:hover { background: var(--cl-warm-sand); color: var(--cl-near-black); }
+  .md-btn svg { width: 14px; height: 14px; }
+  .md-btn.wide { width: auto; padding: 0 7px; font-size: 11px; font-weight: 700; }
+  .md-sep { width: 1px; height: 16px; background: var(--cl-border-warm); margin: 0 3px; }
+  .md-tabs { margin-left: auto; display: inline-flex; gap: 2px; padding: 2px; background: var(--cl-warm-sand); border-radius: 6px; }
+  .md-tab {
+    height: 21px; padding: 0 9px; border-radius: 4px;
+    font-size: 10.5px; font-weight: 600; color: var(--cl-olive);
+  }
+  .md-tab.active { background: var(--cl-white); color: var(--cl-near-black); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+
+  .note-stack { position: relative; flex: 1; min-height: 150px; display: flex; }
+  .note-stack.split { gap: 0; }
+  .note-area {
+    flex: 1; width: 100%;
+    border: 1px solid var(--cl-border-cream);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    background: var(--cl-white);
+    padding: 10px 11px;
+    font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: var(--cl-near-black);
+    resize: none;
+  }
+  .note-area:focus {
+    outline: none; border-color: var(--cl-coral);
+    box-shadow: 0 0 0 3px rgba(217,119,87,.12);
+  }
+  .note-area::placeholder { color: var(--cl-warm-silver); }
+  .note-preview {
+    flex: 1; overflow-y: auto;
+    border: 1px solid var(--cl-border-cream);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    background: var(--cl-white);
+    padding: 10px 12px;
+    font-size: 12.5px; line-height: 1.65; color: var(--cl-charcoal);
+  }
+  .note-stack.split .note-area { border-radius: 0 0 0 var(--radius-md); }
+  .note-stack.split .note-preview { border-left: none; border-radius: 0 0 var(--radius-md) 0; }
+  .hidden { display: none !important; }
+
+  /* rendered markdown */
+  .md h1, .md h2, .md h3 { font-family: var(--font-serif); color: var(--cl-near-black); line-height: 1.25; margin: 8px 0 4px; }
+  .md h1 { font-size: 15px; } .md h2 { font-size: 13.5px; } .md h3 { font-size: 12.5px; }
+  .md > *:first-child { margin-top: 0; }
+  .md p { margin: 4px 0; }
+  .md ul, .md ol { margin: 4px 0; padding-left: 19px; }
+  .md li { margin: 2px 0; }
+  .md strong { color: var(--cl-near-black); font-weight: 700; }
+  .md code { font-family: var(--font-mono); font-size: 11px; padding: 1px 4px; border-radius: 3px; background: var(--cl-parchment); color: var(--cl-dark-warm); }
+  .md a { color: var(--cl-terracotta); text-decoration: underline; }
+
+  .field-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 7px; font-size: 10px; color: var(--cl-warm-silver); letter-spacing: .02em;
+  }
+  .field-stat { font-family: var(--font-mono); }
+
+  /* collapsible metadata (Variant B) */
+  .meta-section { border-top: 1px solid var(--cl-border-cream); padding-top: 13px; }
+  .meta-section-head {
+    display: flex; align-items: center; gap: 6px; width: 100%;
+    font-size: 10px; font-weight: 700; color: var(--cl-stone);
+    text-transform: uppercase; letter-spacing: .09em;
+    margin-bottom: 11px;
+  }
+  .meta-section-head svg { width: 13px; height: 13px; transition: transform 160ms ease; }
+  .meta-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 11px; gap: 10px; }
+  .meta-row:last-child { margin-bottom: 0; }
+  .meta-row > span { font-size: 11.5px; color: var(--cl-olive); }
+  .swatches { display: flex; gap: 6px; }
+  .swatch { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+  .swatch.sel { box-shadow: 0 0 0 2px var(--cl-ivory), 0 0 0 4px var(--cl-near-black); }
+  .priority-pills { display: inline-flex; gap: 4px; }
+  .pp { height: 22px; padding: 0 9px; border-radius: var(--radius-pill); font-size: 10.5px; font-weight: 600; color: var(--cl-olive); background: var(--cl-parchment); border: 1px solid var(--cl-border-warm); }
+  .pp.sel { background: var(--cl-near-black); color: var(--cl-ivory); border-color: var(--cl-near-black); }
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tag { display: inline-flex; align-items: center; gap: 4px; height: 21px; padding: 0 8px; border-radius: var(--radius-pill); font-size: 10.5px; background: rgba(201,100,66,.1); color: var(--cl-terracotta); font-weight: 600; }
+  .tag-add { background: var(--cl-parchment); color: var(--cl-stone); border: 1px dashed var(--cl-ring-warm); cursor: pointer; }
+
+  /* keep toolbar groups from collapsing in the fixed-size canvas */
+  .tgroup, .seg, .stepper, .split, .actions, .brand { flex-shrink: 0; }
+  .seg-item, .btn { flex-shrink: 0; }
+
+  /* ── B-only / A-only visibility helpers ── */
+  body[data-variant="A"] [data-only="B"] { display: none !important; }
+  body[data-variant="B"] [data-only="A"] { display: none !important; }
+
+  /* ════════════════════════════════════════════════════════════════
+     Variant switcher (in-page control)
+     ════════════════════════════════════════════════════════════════ */
+  .switcher {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 12px 9px 16px;
+    background: rgba(20,20,19,.92);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-pill);
+    box-shadow: 0 10px 36px rgba(0,0,0,.3);
+    z-index: 500;
+    color: var(--cl-ivory);
+  }
+  .switcher-label { font-size: 11px; font-weight: 600; letter-spacing: .03em; color: rgba(255,255,255,.62); white-space: nowrap; }
+  .switcher-seg { display: inline-flex; gap: 3px; padding: 3px; background: rgba(255,255,255,.1); border-radius: var(--radius-pill); }
+  .switcher-seg button {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 0;
+    padding: 5px 14px; border-radius: var(--radius-pill);
+    color: rgba(255,255,255,.7); transition: all 140ms ease;
+  }
+  .switcher-seg button .sw-t { font-size: 12px; font-weight: 650; line-height: 1.1; }
+  .switcher-seg button .sw-s { font-size: 9.5px; color: rgba(255,255,255,.5); }
+  .switcher-seg button.active { background: var(--cl-terracotta); color: #fff; box-shadow: 0 2px 8px rgba(201,100,66,.5); }
+  .switcher-seg button.active .sw-s { color: rgba(255,255,255,.78); }
+  .switcher .sw-divider { width: 1px; height: 26px; background: rgba(255,255,255,.16); }
+  .switcher-toggle { display: flex; align-items: center; gap: 7px; font-size: 11px; color: rgba(255,255,255,.7); white-space: nowrap; }
+  .mini-switch { width: 32px; height: 18px; border-radius: 999px; background: rgba(255,255,255,.2); position: relative; transition: background 140ms ease; flex-shrink: 0; }
+  .mini-switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform 140ms ease; }
+  .mini-switch.on { background: var(--cl-terracotta); }
+  .mini-switch.on::after { transform: translateX(14px); }
+
+  /* annotation callouts */
+  .note-flag {
+    position: absolute; z-index: 70;
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: var(--radius-pill);
+    background: var(--cl-near-black); color: var(--cl-ivory);
+    font-size: 10.5px; font-weight: 600; letter-spacing: .01em;
+    box-shadow: 0 4px 14px rgba(0,0,0,.22);
+    opacity: 0; transform: translateY(4px); pointer-events: none;
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+  .note-flag.show { opacity: 1; transform: translateY(0); }
+  .note-flag .num { width: 15px; height: 15px; border-radius: 50%; background: var(--cl-coral); display: grid; place-items: center; font-size: 9px; }
+  .note-flag::after { content: ""; position: absolute; width: 8px; height: 8px; background: var(--cl-near-black); transform: rotate(45deg); }
+  .note-flag.below::after { top: -4px; left: 16px; }
+
+</style>
+</head>
+<body data-variant="B">
+  <div class="stage">
+    <div class="window" id="window">
+      <!-- editor tab chrome -->
+      <div class="chrome-tabs">
+        <div class="chrome-tab">
+          <span class="km-dot">KM</span>
+          <span>乳腺外科恶性肿瘤.km</span>
+          <span class="close">×</span>
+        </div>
+        <div class="chrome-spacer"></div>
+        <div class="chrome-dots">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </div>
+      </div>
+      <div class="breadcrumb-strip">
+        <span>resources</span>
+        <span class="crumb-sep">›</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        <span>乳腺外科恶性肿瘤.km</span>
+      </div>
+
+      <!-- ══════════ TOP BAR / TOOLBAR ══════════ -->
+      <header class="top-bar">
+        <div class="brand">
+          <div class="logo">KM</div>
+          <div class="brand-meta">
+            <span class="brand-title">乳腺恶性肿瘤</span>
+            <span class="brand-sub"><span class="brand-saved">●</span> 已自动保存 · 42 节点</span>
+          </div>
+        </div>
+        <div class="v-divider"></div>
+
+        <div class="toolbar">
+          <!-- Node actions -->
+          <div class="tgroup">
+            <span class="tgroup-label">节点</span>
+            <div class="tgroup-row">
+              <!-- Variant B: split primary add -->
+              <div class="split" data-only="B">
+                <button class="split-main" title="添加子节点 (Tab)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                  添加
+                </button>
+                <button class="split-caret" id="add-caret" title="更多添加方式">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+              </div>
+              <!-- Variant A: three explicit icon buttons -->
+              <button class="btn icon-btn" data-only="A" title="添加子节点 (Tab)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              </button>
+              <button class="btn icon-btn" data-only="A" title="添加同级节点 (Enter)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></svg>
+              </button>
+              <button class="btn icon-btn" data-only="A" title="添加父节点">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg>
+              </button>
+              <button class="btn icon-btn danger" title="删除节点 (Delete)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="v-divider"></div>
+
+          <!-- Expand level -->
+          <div class="tgroup">
+            <span class="tgroup-label">展开层级</span>
+            <div class="tgroup-row">
+              <div class="seg" id="seg-level">
+                <button class="seg-item" title="收起" data-act="collapse">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 20 5-5 5 5"/><path d="m7 4 5 5 5-5"/></svg>
+                </button>
+                <button class="seg-item" data-lvl="1">1</button>
+                <button class="seg-item active" data-lvl="2">2</button>
+                <button class="seg-item" data-lvl="3">3</button>
+                <button class="seg-item" data-lvl="all">全部</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="v-divider"></div>
+
+          <!-- Layout -->
+          <div class="tgroup">
+            <span class="tgroup-label">布局</span>
+            <div class="tgroup-row">
+              <div class="seg" id="seg-layout">
+                <button class="seg-item active accent-active" data-tpl="default" title="思维导图">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 12h4M11 12 17 6M11 12l6 6"/></svg>
+                  脑图
+                </button>
+                <button class="seg-item" data-tpl="right" title="向右展开">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h6M9 7v10M9 9h7M9 15h7"/></svg>
+                  右展
+                </button>
+                <button class="seg-item" data-tpl="structure" title="组织结构图">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-2h12v2"/></svg>
+                  组织
+                </button>
+              </div>
+              <button class="btn icon-btn" data-only="A" title="整理布局">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="v-divider"></div>
+
+          <!-- Zoom -->
+          <div class="tgroup">
+            <span class="tgroup-label">视图</span>
+            <div class="tgroup-row">
+              <div class="stepper">
+                <button title="缩小 (⌘-)" id="zoom-out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg></button>
+                <span class="zoom-val" id="zoom-val" title="重置为 100%">100%</span>
+                <button title="放大 (⌘+)" id="zoom-in"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+              </div>
+              <button class="btn icon-btn" title="适应画布 (⌘0)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+              </button>
+              <button class="btn icon-btn" data-only="A" title="居中">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="toolbar-spacer"></div>
+
+          <!-- History + actions -->
+          <div class="actions">
+            <button class="cmd-hint" data-only="B" title="命令面板"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span>搜索</span><kbd>⌘F</kbd></button>
+            <div class="v-divider"></div>
+            <button class="btn icon-btn" title="撤销 (⌘Z)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+            </button>
+            <button class="btn icon-btn" title="重做 (⌘⇧Z)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 9.5 20H13"/></svg>
+            </button>
+            <!-- Variant A keeps source button inline; B moves it to overflow -->
+            <button class="btn icon-btn" data-only="A" title="源码 JSON">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+            </button>
+            <div class="menu-wrap" data-only="B">
+              <button class="btn icon-btn" id="more-btn" title="更多">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+              </button>
+              <div class="menu" id="more-menu">
+                <button class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>整理布局</button>
+                <button class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>画布居中<span class="mi-kbd">⌘0</span></button>
+                <div class="menu-sep"></div>
+                <button class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>查看源码 JSON</button>
+                <button class="menu-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 10l5 5 5-5M5 21h14"/></svg>导出 / 下载</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ══════════ CANVAS + PANEL ══════════ -->
+      <div class="main">
+        <div class="canvas pinned" id="canvas">
+          <div class="map">
+            <svg id="links" viewBox="0 0 900 620" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="node root" style="left: 28%; top: 50%;">乳腺恶性肿瘤</div>
+
+            <div class="node branch" style="left: 50%; top: 17%;">原发</div>
+            <div class="node branch" style="left: 50%; top: 39%;">淋巴瘤</div>
+            <div class="node branch" style="left: 50%; top: 64%;">原位癌</div>
+            <div class="node branch" style="left: 50%; top: 87%;">继发</div>
+
+            <div class="node selected" id="sel-node" style="left: 76%; top: 12%;">
+              C50.800x002 乳腺中下象限恶性肿瘤
+              <span class="note-badge">!</span>
+            </div>
+            <div class="node" style="left: 76%; top: 24%;">C50.800x003 乳腺中外象限恶性肿瘤</div>
+            <div class="node" style="left: 76%; top: 36%;">C85.900x031 乳腺淋巴瘤</div>
+            <div class="node" style="left: 76%; top: 58%;">D05.000 乳房小叶原位癌</div>
+            <div class="node" style="left: 76%; top: 70%;">D05.100x001 乳腺导管原位癌</div>
+            <div class="node" style="left: 76%; top: 88%;">C79.806 乳腺继发恶性肿瘤</div>
+          </div>
+
+          <div class="note-flag below" id="flag-toolbar" style="left: 12px; top: 8px;">
+            <span class="num">1</span> 工具栏：分组 + 分段控件，查找更快
+          </div>
+        </div>
+
+        <!-- node panel -->
+        <aside class="panel pinned" id="panel">
+          <div class="panel-head">
+            <div class="panel-head-top">
+              <span class="panel-eyebrow"><span class="dot"></span>节点属性</span>
+              <div class="panel-head-actions">
+                <button class="btn icon-btn" id="pin-btn" title="固定 / 浮动">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1z"/></svg>
+                </button>
+                <button class="btn icon-btn" title="关闭 (Esc)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="node-identity">
+              <div class="node-swatch">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>
+              </div>
+              <div class="node-identity-text">
+                <div class="node-name" id="panel-name">乳腺中下象限恶性肿瘤</div>
+                <div class="node-breadcrumb">
+                  <span class="bc">乳腺恶性肿瘤</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 18 6-6-6-6"/></svg>
+                  <span class="bc">原发</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 18 6-6-6-6"/></svg>
+                  <span class="bc current">C50.800x002</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="meta-chips" data-only="B">
+              <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>层级 <b>L2</b></span>
+              <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="M12 7v4M12 11l-6 6M12 11l6 6"/></svg>子节点 <b>0</b></span>
+              <span class="chip code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 18 4-4-4-4M16 6v12"/></svg>C50.800x002</span>
+            </div>
+          </div>
+
+          <div class="panel-body">
+            <!-- title -->
+            <div class="field">
+              <div class="field-head"><label for="title">标题</label></div>
+              <input id="title" class="title-input" type="text" value="C50.800x002 乳腺中下象限恶性肿瘤" />
+            </div>
+
+            <!-- note editor -->
+            <div class="field note-field">
+              <div class="note-toolbar">
+                <button class="md-btn" data-md="h" title="标题">H</button>
+                <button class="md-btn" data-md="b" title="加粗 (⌘B)">B</button>
+                <button class="md-btn" data-md="i" title="斜体" style="font-style:italic;font-weight:600;">i</button>
+                <span class="md-sep"></span>
+                <button class="md-btn" data-md="ul" title="无序列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
+                <button class="md-btn" data-md="ol" title="有序列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6h11M10 12h11M10 18h11M4 6h1v4M4 10h2M6 18H4l2-2.5V14H4"/></svg></button>
+                <button class="md-btn" data-md="todo" title="任务列表"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="6" height="6" rx="1"/><path d="m3 17 2 2 4-4M13 6h8M13 18h8"/></svg></button>
+                <span class="md-sep"></span>
+                <button class="md-btn" data-md="link" title="链接"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></button>
+                <button class="md-btn" data-md="code" title="代码"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg></button>
+                <div class="md-tabs" id="md-tabs">
+                  <button class="md-tab active" data-tab="edit">编辑</button>
+                  <button class="md-tab" data-tab="preview">预览</button>
+                  <button class="md-tab" data-tab="split" data-only="B">分屏</button>
+                </div>
+              </div>
+              <div class="note-stack" id="note-stack">
+                <textarea id="note" class="note-area" spellcheck="false"># aaaaeswe
+
+1. werqwer
+2. preop o
+
+**重点**：术前评估须复核 *影像* 与病理。
+- 切缘 `> 2mm`
+- 淋巴结分期</textarea>
+                <div class="note-preview md hidden" id="preview"></div>
+              </div>
+              <div class="field-foot">
+                <span class="field-stat" id="stat">— 字符 · — 行</span>
+                <span>支持 Markdown · GFM</span>
+              </div>
+            </div>
+
+            <!-- metadata (Variant B) -->
+            <div class="meta-section" data-only="B">
+              <button class="meta-section-head" id="meta-toggle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                外观与标记
+              </button>
+              <div id="meta-content">
+                <div class="meta-row">
+                  <span>优先级</span>
+                  <div class="priority-pills">
+                    <button class="pp">低</button>
+                    <button class="pp sel">中</button>
+                    <button class="pp">高</button>
+                  </div>
+                </div>
+                <div class="meta-row">
+                  <span>节点颜色</span>
+                  <div class="swatches">
+                    <span class="swatch sel" style="background:#c96442"></span>
+                    <span class="swatch" style="background:#d4a04a"></span>
+                    <span class="swatch" style="background:#5a8a52"></span>
+                    <span class="swatch" style="background:#4a7ba6"></span>
+                    <span class="swatch" style="background:#141413"></span>
+                  </div>
+                </div>
+                <div class="meta-row" style="align-items:flex-start;">
+                  <span style="margin-top:2px;">标签</span>
+                  <div class="tags">
+                    <span class="tag">外科</span>
+                    <span class="tag">待复核</span>
+                    <span class="tag tag-add">+ 添加</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="note-flag" id="flag-panel" style="left:-198px; top:130px;">
+            <span class="num">2</span> 属性面板：清晰头部 + Markdown 编辑
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ Variant switcher ══════════ -->
+  <div class="switcher">
+    <span class="switcher-label">设计方案</span>
+    <div class="switcher-seg" id="variant-seg">
+      <button data-v="A"><span class="sw-t">A · 精修</span><span class="sw-s">克制收敛</span></button>
+      <button class="active" data-v="B"><span class="sw-t">B · 进阶</span><span class="sw-s">信息更丰富</span></button>
+    </div>
+    <div class="sw-divider"></div>
+    <div class="switcher-toggle" id="pin-toggle">
+      <span class="mini-switch on" id="pin-mini"></span>固定面板
+    </div>
+    <div class="switcher-toggle" id="flag-toggle">
+      <span class="mini-switch" id="flag-mini"></span>标注
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+  var body = document.body;
+
+  /* ── scale fixed-size window to fit viewport ─────────────── */
+  var stage = document.querySelector(".stage");
+  function fit() {
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var scale = Math.min((vw - 40) / 1280, (vh - 110) / 800);
+    scale = Math.min(scale, 1.05);
+    stage.style.transform = "translate(-50%, -50%) scale(" + scale + ")";
+  }
+  fit();
+  window.addEventListener("resize", fit);
+
+  /* ── connectors ──────────────────────────────────────────── */
+  function drawLinks() {
+    var svg = document.getElementById("links");
+    // coordinates in the 900x620 viewBox space
+    var root = { x: 252, y: 310 };
+    var branches = [
+      { x: 450, y: 105 },  // 原发
+      { x: 450, y: 242 },  // 淋巴瘤
+      { x: 450, y: 397 },  // 原位癌
+      { x: 450, y: 540 },  // 继发
+    ];
+    var leavesByBranch = {
+      0: [ {x:684,y:74}, {x:684,y:149} ],
+      1: [ {x:684,y:223} ],
+      2: [ {x:684,y:360}, {x:684,y:434} ],
+      3: [ {x:684,y:546} ],
+    };
+    var paths = "";
+    function curve(a, b, accent) {
+      var mx = (a.x + b.x) / 2;
+      var w = accent ? 2.5 : 1.6;
+      var col = accent ? "#c96442" : "#cbb9a8";
+      return '<path d="M' + a.x + ' ' + a.y + ' C ' + mx + ' ' + a.y + ' ' + mx + ' ' + b.y + ' ' + b.x + ' ' + b.y + '" fill="none" stroke="' + col + '" stroke-width="' + w + '" stroke-linecap="round"/>';
+    }
+    branches.forEach(function (br, i) {
+      paths += curve(root, br, true);
+      (leavesByBranch[i] || []).forEach(function (lf) {
+        var accent = (i === 0 && lf.y === 74); // selected leaf branch
+        paths += curve(br, lf, false);
+      });
+    });
+    svg.innerHTML = paths;
+  }
+  drawLinks();
+  window.addEventListener("resize", drawLinks);
+
+  /* ── variant switching ───────────────────────────────────── */
+  var seg = document.getElementById("variant-seg");
+  seg.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-v]");
+    if (!b) return;
+    seg.querySelectorAll("button").forEach(function (x) { x.classList.remove("active"); });
+    b.classList.add("active");
+    body.setAttribute("data-variant", b.dataset.v);
+    // B uses split-add; A doesn't — re-render preview tab state fine
+    renderPreview();
+  });
+
+  /* ── pin toggle ──────────────────────────────────────────── */
+  var canvas = document.getElementById("canvas");
+  var panel = document.getElementById("panel");
+  var pinMini = document.getElementById("pin-mini");
+  function setPinned(on) {
+    pinMini.classList.toggle("on", on);
+    panel.classList.toggle("pinned", on);
+    canvas.classList.toggle("pinned", on);
+  }
+  document.getElementById("pin-toggle").addEventListener("click", function () {
+    setPinned(!panel.classList.contains("pinned"));
+  });
+  document.getElementById("pin-btn").addEventListener("click", function () {
+    setPinned(!panel.classList.contains("pinned"));
+  });
+
+  /* ── annotation flags ────────────────────────────────────── */
+  var flagMini = document.getElementById("flag-mini");
+  var flagToolbar = document.getElementById("flag-toolbar");
+  var flagPanel = document.getElementById("flag-panel");
+  document.getElementById("flag-toggle").addEventListener("click", function () {
+    var on = !flagMini.classList.contains("on");
+    flagMini.classList.toggle("on", on);
+    flagToolbar.classList.toggle("show", on);
+    flagPanel.classList.toggle("show", on);
+  });
+
+  /* ── expand-level + layout segmented controls ────────────── */
+  function wireSeg(id, attr) {
+    var el = document.getElementById(id);
+    el.addEventListener("click", function (e) {
+      var b = e.target.closest(".seg-item");
+      if (!b || !b.hasAttribute(attr)) return;
+      el.querySelectorAll(".seg-item[" + attr + "]").forEach(function (x) { x.classList.remove("active"); });
+      b.classList.add("active");
+    });
+  }
+  wireSeg("seg-level", "data-lvl");
+  // layout: keep accent-active styling on the chosen one
+  var segLayout = document.getElementById("seg-layout");
+  segLayout.addEventListener("click", function (e) {
+    var b = e.target.closest(".seg-item");
+    if (!b) return;
+    segLayout.querySelectorAll(".seg-item").forEach(function (x) { x.classList.remove("active", "accent-active"); });
+    b.classList.add("active", "accent-active");
+  });
+
+  /* ── zoom stepper ────────────────────────────────────────── */
+  var zoom = 100;
+  var zoomVal = document.getElementById("zoom-val");
+  function setZoom(z) { zoom = Math.max(25, Math.min(400, z)); zoomVal.textContent = zoom + "%"; }
+  document.getElementById("zoom-in").addEventListener("click", function () { setZoom(zoom + 10); });
+  document.getElementById("zoom-out").addEventListener("click", function () { setZoom(zoom - 10); });
+  zoomVal.addEventListener("click", function () { setZoom(100); });
+
+  /* ── overflow menu ───────────────────────────────────────── */
+  var moreBtn = document.getElementById("more-btn");
+  var moreMenu = document.getElementById("more-menu");
+  if (moreBtn) {
+    moreBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      moreMenu.classList.toggle("open");
+    });
+    document.addEventListener("click", function () { moreMenu.classList.remove("open"); });
+    moreMenu.addEventListener("click", function (e) { e.stopPropagation(); });
+  }
+
+  /* ── meta section collapse ───────────────────────────────── */
+  var metaToggle = document.getElementById("meta-toggle");
+  var metaContent = document.getElementById("meta-content");
+  metaToggle.addEventListener("click", function () {
+    var hidden = metaContent.classList.toggle("hidden");
+    metaToggle.querySelector("svg").style.transform = hidden ? "rotate(-90deg)" : "rotate(0)";
+  });
+
+  /* ── markdown editor: tabs + preview + toolbar ───────────── */
+  var note = document.getElementById("note");
+  var preview = document.getElementById("preview");
+  var stack = document.getElementById("note-stack");
+  var stat = document.getElementById("stat");
+  var mdTabs = document.getElementById("md-tabs");
+  var currentTab = "edit";
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function inline(s) {
+    s = escapeHtml(s);
+    s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
+    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/(^|[^*])\*([^*]+)\*/g, "$1<em>$2</em>");
+    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+    return s;
+  }
+  function renderMarkdown(src) {
+    var lines = src.split("\n");
+    var html = "", i = 0;
+    while (i < lines.length) {
+      var ln = lines[i];
+      var m;
+      if ((m = ln.match(/^(#{1,3})\s+(.*)$/))) {
+        var lvl = m[1].length; html += "<h" + lvl + ">" + inline(m[2]) + "</h" + lvl + ">"; i++; continue;
+      }
+      if (/^\s*\d+\.\s+/.test(ln)) {
+        html += "<ol>";
+        while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) { html += "<li>" + inline(lines[i].replace(/^\s*\d+\.\s+/, "")) + "</li>"; i++; }
+        html += "</ol>"; continue;
+      }
+      if (/^\s*[-*]\s+/.test(ln)) {
+        html += "<ul>";
+        while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) { html += "<li>" + inline(lines[i].replace(/^\s*[-*]\s+/, "")) + "</li>"; i++; }
+        html += "</ul>"; continue;
+      }
+      if (ln.trim() === "") { i++; continue; }
+      html += "<p>" + inline(ln) + "</p>"; i++;
+    }
+    return html;
+  }
+  function renderPreview() { preview.innerHTML = renderMarkdown(note.value); }
+  function updateStat() {
+    var v = note.value;
+    var chars = v.length;
+    var lines = v.split("\n").length;
+    stat.textContent = chars + " 字符 · " + lines + " 行";
+  }
+  function setTab(tab) {
+    currentTab = tab;
+    mdTabs.querySelectorAll(".md-tab").forEach(function (t) { t.classList.toggle("active", t.dataset.tab === tab); });
+    if (tab === "edit") {
+      stack.classList.remove("split"); note.classList.remove("hidden"); preview.classList.add("hidden");
+    } else if (tab === "preview") {
+      stack.classList.remove("split"); note.classList.add("hidden"); preview.classList.remove("hidden"); renderPreview();
+    } else { // split
+      stack.classList.add("split"); note.classList.remove("hidden"); preview.classList.remove("hidden"); renderPreview();
+    }
+  }
+  mdTabs.addEventListener("click", function (e) {
+    var t = e.target.closest(".md-tab");
+    if (!t) return;
+    // 'split' tab only valid in B
+    if (t.dataset.tab === "split" && body.getAttribute("data-variant") !== "B") return;
+    setTab(t.dataset.tab);
+  });
+  note.addEventListener("input", function () { updateStat(); if (currentTab !== "edit") renderPreview(); });
+
+  /* markdown toolbar buttons (wrap/insert on selection) */
+  var wraps = { b: ["**", "**"], i: ["*", "*"], code: ["`", "`"] };
+  var prefixes = { h: "# ", ul: "- ", ol: "1. ", todo: "- [ ] " };
+  document.querySelector(".note-toolbar").addEventListener("click", function (e) {
+    var b = e.target.closest(".md-btn");
+    if (!b) return;
+    var kind = b.dataset.md;
+    note.focus();
+    var s = note.selectionStart, en = note.selectionEnd, val = note.value;
+    var sel = val.slice(s, en);
+    if (wraps[kind]) {
+      var w = wraps[kind];
+      note.value = val.slice(0, s) + w[0] + (sel || "文本") + w[1] + val.slice(en);
+      note.selectionStart = s + w[0].length; note.selectionEnd = s + w[0].length + (sel || "文本").length;
+    } else if (kind === "link") {
+      note.value = val.slice(0, s) + "[" + (sel || "链接") + "](https://)" + val.slice(en);
+    } else if (prefixes[kind]) {
+      var lineStart = val.lastIndexOf("\n", s - 1) + 1;
+      note.value = val.slice(0, lineStart) + prefixes[kind] + val.slice(lineStart);
+    }
+    updateStat(); if (currentTab !== "edit") renderPreview();
+  });
+
+  updateStat();
+  renderPreview();
+})();
+</script>
+</body>
+</html>
