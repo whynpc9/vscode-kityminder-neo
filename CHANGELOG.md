@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3 - 2026-06-19
+
+- Refresh the editor toolbar with grouped node, layout, view, and history controls
+- Rework the node popover into a focused property panel with Markdown note editing and preview
+- Update release tooling lockfile dependencies to clear current `npm audit` findings
+
 ## 0.1.2 - 2026-06-17
 
 - Refresh Marketplace documentation with bilingual README updates and screenshots

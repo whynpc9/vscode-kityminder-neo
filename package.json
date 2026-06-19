@@ -2,7 +2,7 @@
   "name": "vscode-kityminder-neo",
   "displayName": "KityMinder Neo",
   "description": "Edit KityMinder .km mindmaps in VS Code with an on-demand visual editor and XMind import.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "publisher": "whynpc9",
   "license": "MIT",
   "icon": "resources/icon.png",
