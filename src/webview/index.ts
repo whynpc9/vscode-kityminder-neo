@@ -423,12 +423,11 @@ class App {
   private showPopover() {
     this.popover.hidden = false;
     this.popover.classList.remove('hidden');
-    this.syncPinnedLayout();
+    this.syncPinnedLayout(true);
   }
 
   private hidePopover() {
-    this.popoverPinned = false;
-    this.syncPinnedLayout();
+    this.syncPinnedLayout(false);
     this.popover.hidden = true;
     this.popover.classList.add('hidden');
   }
@@ -439,13 +438,14 @@ class App {
 
   private togglePopoverPin() {
     this.popoverPinned = !this.popoverPinned;
-    this.syncPinnedLayout();
+    this.syncPinnedLayout(!this.popover.hidden);
   }
 
-  private syncPinnedLayout() {
-    this.popover.classList.toggle('is-pinned', this.popoverPinned);
-    this.canvasArea.classList.toggle('is-popover-pinned', this.popoverPinned);
-    this.popoverPinBtn.classList.toggle('active', this.popoverPinned);
+  private syncPinnedLayout(isVisible: boolean) {
+    const isPinnedVisible = this.popoverPinned && isVisible;
+    this.popover.classList.toggle('is-pinned', isPinnedVisible);
+    this.canvasArea.classList.toggle('is-popover-pinned', isPinnedVisible);
+    this.popoverPinBtn.classList.toggle('active', isPinnedVisible);
     this.popoverPinBtn.title = this.popoverPinned ? '取消固定' : '固定面板';
     this.popover.style.left = '';
     this.popover.style.top = '';

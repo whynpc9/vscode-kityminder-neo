@@ -2,6 +2,7 @@ import { Graph, Cell, Shape, Path } from '@antv/x6';
 import { mindmap as mindmapLayout } from '@antv/hierarchy';
 import type { KmDocumentJson, KmNodeJson } from '../shared/km';
 import { KM_VERSION, createDefaultKmDocument } from '../shared/km';
+import { isImeCompositionKeyEvent } from './keyboard';
 import { renderSafeMarkdown } from './safeMarkdown';
 
 // ── Types ─────────────────────────────────────────────────────────────
@@ -155,6 +156,9 @@ export class MindmapEngine {
   private _editOverlay: HTMLDivElement | null = null;
   private _editInput: HTMLInputElement | null = null;
   private _editOrigText = '';
+  private _editIsComposing = false;
+  private _editIgnoreNextEnterAfterComposition = false;
+  private _editCompositionEndTimer: number | undefined;
 
   // Internal clipboard (VS Code webview clipboard API is unreliable)
   private _clipboard: string | null = null;
@@ -497,6 +501,8 @@ export class MindmapEngine {
     input.addEventListener('blur', () => {
       setTimeout(() => this.commitEdit(), 0);
     });
+    input.addEventListener('compositionstart', () => this._handleEditCompositionStart());
+    input.addEventListener('compositionend', () => this._handleEditCompositionEnd());
     input.addEventListener('keydown', (e) => this._handleEditKeyDown(e));
 
     overlay.appendChild(input);
@@ -538,9 +544,41 @@ export class MindmapEngine {
     this._editInput = null;
     this._editingId = null;
     this._editOrigText = '';
+    this._editIsComposing = false;
+    this._editIgnoreNextEnterAfterComposition = false;
+    if (this._editCompositionEndTimer !== undefined) {
+      window.clearTimeout(this._editCompositionEndTimer);
+      this._editCompositionEndTimer = undefined;
+    }
+  }
+
+  private _handleEditCompositionStart() {
+    if (this._editCompositionEndTimer !== undefined) {
+      window.clearTimeout(this._editCompositionEndTimer);
+      this._editCompositionEndTimer = undefined;
+    }
+    this._editIsComposing = true;
+    this._editIgnoreNextEnterAfterComposition = false;
+  }
+
+  private _handleEditCompositionEnd() {
+    this._editIsComposing = false;
+    this._editIgnoreNextEnterAfterComposition = true;
+    if (this._editCompositionEndTimer !== undefined) {
+      window.clearTimeout(this._editCompositionEndTimer);
+    }
+    this._editCompositionEndTimer = window.setTimeout(() => {
+      this._editIgnoreNextEnterAfterComposition = false;
+      this._editCompositionEndTimer = undefined;
+    }, 50);
   }
 
   private _handleEditKeyDown(e: KeyboardEvent) {
+    if (this._shouldLetImeHandleEditKeyDown(e)) {
+      e.stopPropagation();
+      return;
+    }
+
     if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
@@ -568,6 +606,23 @@ export class MindmapEngine {
       this.addChildAndEdit();
     }
     e.stopPropagation();
+  }
+
+  private _shouldLetImeHandleEditKeyDown(e: KeyboardEvent): boolean {
+    if (this._editIsComposing || isImeCompositionKeyEvent(e)) {
+      return true;
+    }
+
+    if (this._editIgnoreNextEnterAfterComposition) {
+      this._editIgnoreNextEnterAfterComposition = false;
+      if (this._editCompositionEndTimer !== undefined) {
+        window.clearTimeout(this._editCompositionEndTimer);
+        this._editCompositionEndTimer = undefined;
+      }
+      return e.key === 'Enter';
+    }
+
+    return false;
   }
 
   // ── Clipboard ──────────────────────────────────────────────────────
