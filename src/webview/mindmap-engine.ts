@@ -2,7 +2,7 @@ import { Graph, Cell, Shape, Path } from '@antv/x6';
 import { mindmap as mindmapLayout } from '@antv/hierarchy';
 import type { KmDocumentJson, KmNodeJson } from '../shared/km';
 import { KM_VERSION, createDefaultKmDocument } from '../shared/km';
-import { isImeCompositionKeyEvent } from './keyboard';
+import { isImeCompositionKeyEvent, isInlineEditNativeTextShortcut } from './keyboard';
 import { renderSafeMarkdown } from './safeMarkdown';
 
 // ── Types ─────────────────────────────────────────────────────────────
@@ -579,6 +579,10 @@ export class MindmapEngine {
       return;
     }
 
+    if (isInlineEditNativeTextShortcut(e)) {
+      return;
+    }
+
     if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
@@ -1088,8 +1092,22 @@ export class MindmapEngine {
     this.selectNode(result.nodeId);
     const cell = this.graph.getCellById(result.nodeId);
     if (cell?.isNode()) {
-      this.graph.centerCell(cell);
+      this._centerCellInViewport(cell);
     }
+  }
+
+  private _centerCellInViewport(cell: Cell) {
+    const box = cell.getBBox();
+    const center = box.getCenter();
+    const scale = this.graph.transform.getScale();
+    const viewportW = this._container.clientWidth || 1;
+    const viewportH = this._container.clientHeight || 1;
+
+    this.graph.translate(
+      viewportW / 2 - center.x * scale.sx,
+      viewportH / 2 - center.y * scale.sy,
+    );
+    this.onViewChange?.();
   }
 
   private _ensureNodeVisible(nodeId: string) {
@@ -1795,15 +1813,30 @@ export class MindmapEngine {
   }
 
   private applySelectionVisual() {
-    const matchIds = new Set(this._searchResults.map(r => r.nodeId));
+    const matches = new Map(this._searchResults.map(r => [r.nodeId, r]));
+    const activeMatch = this.getCurrentSearchResult();
 
     for (const cell of this.graph.getNodes()) {
       const d = cell.getData() as { depth: number; branch: number } | undefined;
       const base = this.nodeStyle(d?.depth ?? 0, d?.branch ?? 0);
       cell.attr('body/stroke', base.stroke);
       cell.attr('body/strokeWidth', base.strokeWidth);
+      cell.attr('label/fill', base.textFill);
+      cell.attr('label/stroke', 'transparent');
+      cell.attr('label/strokeWidth', 0);
+      cell.attr('label/paintOrder', 'normal');
 
-      if (matchIds.has(cell.id) && cell.id !== this.selectedId) {
+      const match = matches.get(cell.id);
+      const isActiveMatch = Boolean(activeMatch && activeMatch.nodeId === cell.id);
+
+      if (match?.titleMatch) {
+        cell.attr('label/stroke', isActiveMatch ? '#ffe09f' : '#f8cf86');
+        cell.attr('label/strokeWidth', isActiveMatch ? 5 : 3);
+        cell.attr('label/strokeLinejoin', 'round');
+        cell.attr('label/paintOrder', 'stroke');
+      }
+
+      if (match && cell.id !== this.selectedId) {
         cell.attr('body/stroke', P.coral);
         cell.attr('body/strokeWidth', 1.5);
       }
@@ -1813,6 +1846,13 @@ export class MindmapEngine {
       if (cell?.isNode()) {
         cell.attr('body/stroke', P.terracotta);
         cell.attr('body/strokeWidth', 2.5);
+      }
+    }
+    if (activeMatch) {
+      const cell = this.graph.getCellById(activeMatch.nodeId);
+      if (cell?.isNode()) {
+        cell.attr('body/stroke', P.focusBlue);
+        cell.attr('body/strokeWidth', 3);
       }
     }
   }

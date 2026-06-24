@@ -551,6 +551,10 @@ class App {
   }
 
   private searchNext() {
+    if (this.searchInput.value !== this.engine.searchQuery) {
+      this.performSearch();
+      return;
+    }
     if (this.engine.searchResults.length === 0 && this.searchInput.value) {
       this.performSearch();
       return;
@@ -560,6 +564,10 @@ class App {
   }
 
   private searchPrev() {
+    if (this.searchInput.value !== this.engine.searchQuery) {
+      this.performSearch();
+      return;
+    }
     if (this.engine.searchResults.length === 0 && this.searchInput.value) {
       this.performSearch();
       return;
