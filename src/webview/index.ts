@@ -91,6 +91,7 @@ class App {
     this.btn('btn-search-close', () => this.closeSearch());
     this.btn('btn-open-source', () => this.openSource());
     this.btn('btn-open-source-error', () => this.openSource());
+    this.btn('btn-export-image', () => this.requestExportFile());
     this.btn('btn-popover-close', () => this.closePopover());
     this.btn('btn-popover-pin', () => this.togglePopoverPin());
 
@@ -345,6 +346,12 @@ class App {
       case 'importWarnings':
         this.showWarnings(msg.warnings);
         break;
+      case 'exportImage':
+        void this.exportImage(msg);
+        break;
+      case 'exportXmind':
+        this.exportXmind(msg);
+        break;
     }
   }
 
@@ -520,6 +527,68 @@ class App {
 
   private openSource() {
     this.vscode.postMessage({ type: 'revealSourceJson' });
+  }
+
+  private requestExportFile() {
+    if (!this.hasValidDocument) {
+      this.vscode.postMessage({ type: 'showWarning', warning: '当前 KM 文档无法导出。' });
+      return;
+    }
+    this.vscode.postMessage({ type: 'requestExportFile' });
+  }
+
+  private async exportImage(options: Extract<HostToWebviewMessage, { type: 'exportImage' }>) {
+    if (!this.hasValidDocument) {
+      this.vscode.postMessage({ type: 'showWarning', warning: '当前 KM 文档无法导出。' });
+      return;
+    }
+
+    try {
+      if (this.engine.isEditing()) {
+        this.engine.commitEdit();
+      }
+      const result = await this.engine.exportImage({
+        format: options.format,
+        backgroundColor: options.backgroundColor,
+      });
+      this.vscode.postMessage({
+        type: 'saveExportedImage',
+        requestId: options.requestId,
+        format: result.format,
+        encoding: result.encoding,
+        data: result.data,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.vscode.postMessage({
+        type: 'showWarning',
+        warning: `导出图片失败：${message}`,
+      });
+    }
+  }
+
+  private exportXmind(options: Extract<HostToWebviewMessage, { type: 'exportXmind' }>) {
+    if (!this.hasValidDocument) {
+      this.vscode.postMessage({ type: 'showWarning', warning: '当前 KM 文档无法导出。' });
+      return;
+    }
+
+    try {
+      if (this.engine.isEditing()) {
+        this.engine.commitEdit();
+      }
+      this.vscode.postMessage({
+        type: 'saveExportedXmind',
+        requestId: options.requestId,
+        text: stringifyKmDocument(this.engine.exportDocument()),
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.vscode.postMessage({
+        type: 'showWarning',
+        warning: `导出 XMind 失败：${message}`,
+      });
+    }
   }
 
   // ── Search ─────────────────────────────────────────────────────

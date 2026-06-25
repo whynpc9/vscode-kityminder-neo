@@ -1,12 +1,38 @@
 import * as vscode from 'vscode';
 
-import type { HostToWebviewMessage, WebviewToHostMessage, WebviewConfig, SaveExpandState } from '../shared/protocol';
+import { exportXmindArchive } from '../export/xmindExport';
+import {
+  decodeExportedImageData,
+  normalizeExportBackgroundColor,
+  validateExportBackgroundColorInput,
+} from '../shared/imageExport';
+import { parseKmDocument } from '../shared/km';
+import type {
+  ExportFileFormat,
+  HostToWebviewMessage,
+  SaveExpandState,
+  WebviewConfig,
+  WebviewToHostMessage,
+} from '../shared/protocol';
 import {
   replaceCustomEditorWithPlainText,
   shouldUsePlainTextInsteadOfCustomEditor,
 } from './plainTextFallback';
 
 export const KM_EDITOR_VIEW_TYPE = 'kityminder-neo.kmEditor';
+
+interface ExportFormatQuickPickItem extends vscode.QuickPickItem {
+  format: ExportFileFormat;
+}
+
+interface ImageBackgroundQuickPickItem extends vscode.QuickPickItem {
+  backgroundColor: string | null;
+}
+
+interface ExportFileOptions {
+  format: ExportFileFormat;
+  backgroundColor?: string | null;
+}
 
 export class KmEditorProvider implements vscode.CustomTextEditorProvider {
   public static register(
@@ -52,6 +78,7 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
       ]
     };
     webview.html = this.getHtml(webview, document);
+    const pendingExports = new Map<string, vscode.Uri>();
 
     const updateWebview = () => {
       this.postMessage(webview, {
@@ -111,6 +138,18 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
 
         case 'showWarning':
           void vscode.window.showWarningMessage(message.warning);
+          break;
+
+        case 'requestExportFile':
+          await this.requestExportFile(document, webview, pendingExports);
+          break;
+
+        case 'saveExportedImage':
+          await this.saveExportedImage(message, pendingExports);
+          break;
+
+        case 'saveExportedXmind':
+          await this.saveExportedXmind(message, pendingExports);
           break;
       }
     });
@@ -217,6 +256,7 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
         </div>
         </nav>
         <div class="top-bar-actions">
+          <button id="btn-export-image" class="btn icon-btn" title="导出"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></button>
           <button id="btn-open-source" class="btn icon-btn" title="源码 JSON"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg></button>
         </div>
       </header>
@@ -325,9 +365,202 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
     };
   }
 
+  private async requestExportFile(
+    document: vscode.TextDocument,
+    webview: vscode.Webview,
+    pendingExports: Map<string, vscode.Uri>
+  ): Promise<void> {
+    const options = await pickExportOptions();
+    if (!options) {
+      return;
+    }
+
+    const targetUri = await vscode.window.showSaveDialog({
+      defaultUri: withExtension(document.uri, `.${options.format}`),
+      filters: exportFileFilters(options.format),
+      saveLabel: `Export ${options.format.toUpperCase()}`,
+    });
+    if (!targetUri) {
+      return;
+    }
+
+    const requestId = createRequestId();
+    pendingExports.set(requestId, targetUri);
+    if (options.format === 'xmind') {
+      this.postMessage(webview, {
+        type: 'exportXmind',
+        requestId,
+      });
+      return;
+    }
+
+    this.postMessage(webview, {
+      type: 'exportImage',
+      requestId,
+      format: options.format,
+      backgroundColor: options.backgroundColor ?? null,
+    });
+  }
+
+  private async saveExportedImage(
+    message: Extract<WebviewToHostMessage, { type: 'saveExportedImage' }>,
+    pendingExports: Map<string, vscode.Uri>
+  ): Promise<void> {
+    const targetUri = pendingExports.get(message.requestId);
+    if (!targetUri) {
+      void vscode.window.showWarningMessage('No pending image export target was found.');
+      return;
+    }
+    pendingExports.delete(message.requestId);
+
+    try {
+      await vscode.workspace.fs.writeFile(
+        targetUri,
+        decodeExportedImageData(message.data, message.encoding)
+      );
+      void vscode.window.showInformationMessage(
+        `Exported ${message.format.toUpperCase()} image: ${vscode.workspace.asRelativePath(targetUri, false)}`
+      );
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      void vscode.window.showErrorMessage(`Failed to save exported image: ${detail}`);
+    }
+  }
+
+  private async saveExportedXmind(
+    message: Extract<WebviewToHostMessage, { type: 'saveExportedXmind' }>,
+    pendingExports: Map<string, vscode.Uri>
+  ): Promise<void> {
+    const targetUri = pendingExports.get(message.requestId);
+    if (!targetUri) {
+      void vscode.window.showWarningMessage('No pending XMind export target was found.');
+      return;
+    }
+    pendingExports.delete(message.requestId);
+
+    try {
+      const archive = await exportXmindArchive(parseKmDocument(message.text));
+      await vscode.workspace.fs.writeFile(targetUri, archive);
+      void vscode.window.showInformationMessage(
+        `Exported XMind file: ${vscode.workspace.asRelativePath(targetUri, false)}`
+      );
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      void vscode.window.showErrorMessage(`Failed to save exported XMind file: ${detail}`);
+    }
+  }
+
   private postMessage(webview: vscode.Webview, message: HostToWebviewMessage) {
     void webview.postMessage(message);
   }
+}
+
+async function pickExportOptions(): Promise<ExportFileOptions | undefined> {
+  const format = await vscode.window.showQuickPick(
+    [
+      {
+        label: 'PNG',
+        description: '位图图片',
+        format: 'png',
+      },
+      {
+        label: 'SVG',
+        description: '矢量图片',
+        format: 'svg',
+      },
+      {
+        label: 'XMind',
+        description: '可编辑 .xmind 文件',
+        format: 'xmind',
+      },
+    ] satisfies ExportFormatQuickPickItem[],
+    {
+      title: '导出格式',
+      placeHolder: '选择导出格式',
+    }
+  );
+  if (!format) {
+    return undefined;
+  }
+  if (format.format === 'xmind') {
+    return {
+      format: 'xmind',
+    };
+  }
+
+  const background = await vscode.window.showQuickPick(
+    [
+      {
+        label: '透明',
+        description: '默认',
+        backgroundColor: null,
+      },
+      {
+        label: '白色',
+        description: '#ffffff',
+        backgroundColor: '#ffffff',
+      },
+      {
+        label: '自定义颜色...',
+        description: '输入十六进制颜色',
+        backgroundColor: 'custom',
+      },
+    ] satisfies ImageBackgroundQuickPickItem[],
+    {
+      title: '导出背景颜色',
+      placeHolder: '选择背景颜色',
+    }
+  );
+  if (!background) {
+    return undefined;
+  }
+
+  let backgroundColor: string | null;
+  if (background.backgroundColor === 'custom') {
+    const input = await vscode.window.showInputBox({
+      title: '导出背景颜色',
+      prompt: '输入 transparent 或十六进制颜色，例如 #ffffff。',
+      value: 'transparent',
+      validateInput: validateExportBackgroundColorInput,
+    });
+    if (input === undefined) {
+      return undefined;
+    }
+
+    const normalized = normalizeExportBackgroundColor(input);
+    if (normalized === undefined) {
+      return undefined;
+    }
+    backgroundColor = normalized;
+  } else {
+    backgroundColor = background.backgroundColor;
+  }
+
+  return {
+    format: format.format,
+    backgroundColor,
+  };
+}
+
+function exportFileFilters(format: ExportFileFormat): Record<string, string[]> {
+  if (format === 'png') {
+    return { 'PNG Image': ['png'] };
+  }
+  if (format === 'svg') {
+    return { 'SVG Image': ['svg'] };
+  }
+  return { 'XMind': ['xmind'] };
+}
+
+function withExtension(uri: vscode.Uri, extension: string): vscode.Uri {
+  const nextPath = uri.path.replace(/\.[^/.]+$/, '');
+  return uri.with({
+    path: `${nextPath}${extension}`,
+  });
+}
+
+function createRequestId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
 function getNonce(): string {

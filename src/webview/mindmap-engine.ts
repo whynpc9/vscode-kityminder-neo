@@ -1,7 +1,8 @@
-import { Graph, Cell, Shape, Path } from '@antv/x6';
+import { Graph, Cell, Shape, Path, Export } from '@antv/x6';
 import { mindmap as mindmapLayout } from '@antv/hierarchy';
 import type { KmDocumentJson, KmNodeJson } from '../shared/km';
 import { KM_VERSION, createDefaultKmDocument } from '../shared/km';
+import type { ExportImageEncoding, ExportImageFormat } from '../shared/protocol';
 import { isImeCompositionKeyEvent, isInlineEditNativeTextShortcut } from './keyboard';
 import { renderSafeMarkdown } from './safeMarkdown';
 
@@ -30,12 +31,36 @@ export interface SearchResult {
   noteMatch: boolean;
 }
 
+export interface MindmapImageExportOptions {
+  format: ExportImageFormat;
+  backgroundColor: string | null;
+}
+
+export interface MindmapImageExportResult {
+  format: ExportImageFormat;
+  encoding: ExportImageEncoding;
+  data: string;
+}
+
+interface GraphExportOptions {
+  preserveDimensions?: boolean | { width: number; height: number };
+  viewBox?: { x: number; y: number; width: number; height: number };
+  copyStyles?: boolean;
+  serializeImages?: boolean;
+  beforeSerialize?: (svg: SVGSVGElement) => unknown;
+}
+
+type ExportableGraph = Graph & {
+  toSVG(callback: (svg: string) => void, options?: GraphExportOptions): void;
+};
+
 // ── Warm palette (Claude / Anthropic inspired) ───────────────────────
 
 const P = {
   nearBlack:   '#141413',
   terracotta:  '#c96442',
   coral:       '#d97757',
+  white:       '#ffffff',
   parchment:   '#f5f4ed',
   ivory:       '#faf9f5',
   warmSand:    '#e8e6dc',
@@ -199,8 +224,9 @@ export class MindmapEngine {
       mousewheel: { enabled: false },
       interacting: { nodeMovable: false },
       connecting: { enabled: false } as Record<string, unknown>,
-      background: { color: P.parchment },
+      background: { color: P.white },
     });
+    this.graph.use(new Export());
     this.bindGraphEvents();
     new ResizeObserver(() => this.onViewChange?.()).observe(container);
   }
@@ -285,6 +311,75 @@ export class MindmapEngine {
       this.normalizeExpandState(doc.root, 0);
     }
     return doc;
+  }
+
+  async exportImage(options: MindmapImageExportOptions): Promise<MindmapImageExportResult> {
+    const exported = await this.exportSvg(options.backgroundColor);
+    if (options.format === 'svg') {
+      return {
+        format: 'svg',
+        encoding: 'utf8',
+        data: exported.svg,
+      };
+    }
+
+    return {
+      format: 'png',
+      encoding: 'base64',
+      data: await svgToPngBase64(exported.svg, exported.width, exported.height),
+    };
+  }
+
+  private exportSvg(
+    backgroundColor: string | null
+  ): Promise<{ svg: string; width: number; height: number }> {
+    const viewBox = this.getExportViewBox();
+    const width = Math.max(1, Math.ceil(viewBox.width));
+    const height = Math.max(1, Math.ceil(viewBox.height));
+
+    return new Promise((resolve, reject) => {
+      try {
+        (this.graph as ExportableGraph).toSVG(
+          (svg) => resolve({ svg, width, height }),
+          {
+            viewBox,
+            preserveDimensions: { width, height },
+            copyStyles: true,
+            serializeImages: true,
+            beforeSerialize: (svg) => {
+              prepareExportSvg(svg, viewBox, backgroundColor);
+            },
+          },
+        );
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  private getExportViewBox(): { x: number; y: number; width: number; height: number } {
+    const padding = 32;
+    const bbox = this.graph.graphToLocal(this.graph.getContentBBox()) as {
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    };
+    const width = Number.isFinite(bbox.width) && bbox.width > 0
+      ? bbox.width
+      : Math.max(1, this._container.clientWidth);
+    const height = Number.isFinite(bbox.height) && bbox.height > 0
+      ? bbox.height
+      : Math.max(1, this._container.clientHeight);
+    const x = Number.isFinite(bbox.x) ? bbox.x : 0;
+    const y = Number.isFinite(bbox.y) ? bbox.y : 0;
+
+    return {
+      x: x - padding,
+      y: y - padding,
+      width: width + padding * 2,
+      height: height + padding * 2,
+    };
   }
 
   private normalizeExpandState(km: KmNodeJson, depth: number) {
@@ -1661,7 +1756,9 @@ export class MindmapEngine {
         cursor: 'pointer',
         filter: depth === 0
           ? 'drop-shadow(0 4px 12px rgba(20,20,19,0.18))'
-          : 'none',
+          : depth >= 2
+            ? 'drop-shadow(0 1px 4px rgba(20,20,19,0.1))'
+            : 'none',
       },
       label: {
         ref: 'body',
@@ -1796,20 +1893,32 @@ export class MindmapEngine {
         fontWeight: 600,
       };
     }
+    if (depth === 2) {
+      return {
+        fill: P.white,
+        stroke: P.ringDeep,
+        strokeWidth: 1.5,
+        rx: 8, ry: 8,
+        textFill: P.nearBlack,
+        fontSize: 13,
+        fontWeight: 500,
+      };
+    }
     return {
-      fill: P.ivory,
-      stroke: P.borderCream,
-      strokeWidth: 1,
-      rx: 8, ry: 8,
-      textFill: P.charcoal,
-      fontSize: 13,
-      fontWeight: 400,
+      fill: P.parchment,
+      stroke: P.ringDeep,
+      strokeWidth: 1.5,
+      rx: 7, ry: 7,
+      textFill: P.darkWarm,
+      fontSize: 12,
+      fontWeight: 500,
     };
   }
 
   private edgeColor(depth: number, _branch: number): string {
     if (depth <= 1) return P.terracotta;
-    return P.ringWarm;
+    if (depth === 2) return P.warmSilver;
+    return P.olive;
   }
 
   private applySelectionVisual() {
@@ -1860,4 +1969,58 @@ export class MindmapEngine {
   private emitChange() {
     this.onContentChange?.();
   }
+}
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function prepareExportSvg(
+  svg: SVGSVGElement,
+  viewBox: { x: number; y: number; width: number; height: number },
+  backgroundColor: string | null,
+) {
+  svg.setAttribute('xmlns', SVG_NS);
+  svg.setAttribute('role', 'img');
+
+  if (!backgroundColor) {
+    return;
+  }
+
+  const background = svg.ownerDocument.createElementNS(SVG_NS, 'rect');
+  background.setAttribute('x', String(viewBox.x));
+  background.setAttribute('y', String(viewBox.y));
+  background.setAttribute('width', String(viewBox.width));
+  background.setAttribute('height', String(viewBox.height));
+  background.setAttribute('fill', backgroundColor);
+  background.setAttribute('data-kityminder-export-background', 'true');
+
+  const stage = svg.querySelector('.x6-graph-svg-stage');
+  svg.insertBefore(background, stage ?? svg.firstChild);
+}
+
+function svgToPngBase64(svg: string, width: number, height: number): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const context = canvas.getContext('2d');
+      if (!context) {
+        reject(new Error('Canvas 2D context is not available.'));
+        return;
+      }
+
+      try {
+        context.clearRect(0, 0, width, height);
+        context.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/png');
+        resolve(dataUrl.replace(/^data:image\/png;base64,/i, ''));
+      } catch (error) {
+        reject(error);
+      }
+    };
+    img.onerror = () => reject(new Error('Failed to render SVG export as PNG.'));
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  });
 }

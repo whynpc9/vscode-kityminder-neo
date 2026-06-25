@@ -4,7 +4,7 @@
 
 KityMinder Neo 是一个用于查看和编辑 [fex-team/kityminder](https://github.com/fex-team/kityminder) `.km` 思维导图文件的 VS Code 扩展，适用于百度脑图文件。它默认保留 `.km` 文件在 VS Code 中的 JSON 文本编辑和 diff 流程，只在你明确需要时打开可视化导图编辑器。
 
-扩展也支持导入 `.xmind` 文件并转换为 `.km`。
+扩展也支持导入 `.xmind` 文件并转换为 `.km`，并可从可视化编辑器导出 `.png`、`.svg` 或 `.xmind`。
 
 ## 界面截图
 
@@ -28,6 +28,7 @@ KityMinder Neo 是一个用于查看和编辑 [fex-team/kityminder](https://gith
 - 在节点属性面板中编辑 Markdown 备注。
 - 在有备注的节点上显示备注标记，并通过更安全的 Markdown 渲染路径预览备注。
 - 可从可视化编辑器打开当前 `.km` 的源 JSON。
+- 可从可视化编辑器导出 PNG、SVG 或 XMind。
 - 支持最多 50 步撤销和重做。
 - 导入 `.xmind` 压缩包，并对不支持的 XMind 特性给出提示。
 - 对 `.km` 和 `.xmind` 输入做文件大小、节点数和树深度限制。
@@ -52,6 +53,7 @@ code --install-extension whynpc9.vscode-kityminder-neo
 4. 双击节点或按 `F2` 可以行内编辑标题。
 5. 按 `Tab` 添加子节点，按 `Enter` 添加同级节点。
 6. 在资源管理器中右键 `.xmind` 文件，选择 **Import XMind to KM** 进行导入。
+7. 在可视化编辑器中点击导出按钮；PNG 和 SVG 可选择透明、白色或自定义十六进制背景。
 
 ## Diff 行为
 

@@ -4,7 +4,7 @@
 
 A VS Code extension for viewing and editing [fex-team/kityminder](https://github.com/fex-team/kityminder) `.km` mindmap files, including files from 百度脑图. KityMinder Neo keeps `.km` files in VS Code's normal JSON text and diff workflow by default, then gives you an on-demand visual editor when you want to work on the map directly.
 
-It also imports `.xmind` files and converts them to `.km`.
+It also imports `.xmind` files and converts them to `.km`, and can export visual-editor maps as `.png`, `.svg`, or `.xmind`.
 
 ## Screenshots
 
@@ -28,6 +28,7 @@ It also imports `.xmind` files and converts them to `.km`.
 - Edit Markdown notes in the node properties panel.
 - Show note badges on nodes and render note previews through a safer Markdown path.
 - Open the current `.km` source JSON from the visual editor.
+- Export from the visual editor as PNG, SVG, or XMind.
 - Undo and redo up to 50 editing steps.
 - Import `.xmind` archives, with warnings for unsupported XMind features.
 - Validate `.km` and `.xmind` inputs with size, node-count, and depth limits.
@@ -52,6 +53,7 @@ code --install-extension whynpc9.vscode-kityminder-neo
 4. Double-click a node, or press `F2`, to edit its title inline.
 5. Press `Tab` to add a child node, or `Enter` to add a sibling node.
 6. Import XMind from Explorer by right-clicking a `.xmind` file and choosing **Import XMind to KM**.
+7. Export from the visual editor with the download button; PNG and SVG exports can use transparent, white, or custom hex backgrounds.
 
 ## Diff Behavior
 
