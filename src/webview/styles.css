@@ -1041,9 +1041,9 @@ textarea {
 /* ── Drop indicator ────────────────────────────────────────────────── */
 .km-drop-indicator {
   position: absolute;
-  z-index: 99;
+  z-index: 110;
   pointer-events: none;
-  transition: all 60ms ease;
+  transition: left 60ms ease, top 60ms ease, width 60ms ease;
 }
 
 .km-drop-indicator--child {
@@ -1053,20 +1053,39 @@ textarea {
 }
 
 .km-drop-indicator--line {
-  height: 3px;
+  height: 4px;
+  transform: translateY(-50%);
   background: var(--cl-terracotta);
   border-radius: 2px;
+  box-shadow:
+    0 0 0 2px var(--cl-ivory),
+    0 0 0 3px rgba(201, 100, 66, 0.4),
+    0 2px 10px rgba(201, 100, 66, 0.5);
+}
+
+.km-drop-indicator--line::before,
+.km-drop-indicator--line::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--cl-terracotta);
+  border: 2px solid var(--cl-ivory);
+  box-shadow:
+    0 0 0 1px rgba(201, 100, 66, 0.35),
+    0 2px 6px rgba(201, 100, 66, 0.45);
 }
 
 .km-drop-indicator--line::before {
-  content: "";
-  position: absolute;
-  left: -4px;
-  top: -3px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--cl-terracotta);
+  left: 0;
+  transform: translate(-50%, -50%);
+}
+
+.km-drop-indicator--line::after {
+  right: 0;
+  transform: translate(50%, -50%);
 }
 
 /* ── Note tooltip (renders GFM markdown) ───────────────────────────── */

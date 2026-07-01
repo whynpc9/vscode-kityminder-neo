@@ -5,4 +5,5 @@ dist/
 .agents/
 skills-lock.json
 test/*.km
+test/undoRedo.harness.js
 *.vsix

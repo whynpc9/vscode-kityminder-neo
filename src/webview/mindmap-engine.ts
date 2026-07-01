@@ -81,6 +81,11 @@ const P = {
 
 const CLIPBOARD_MARKER = 'kityminder-subtree';
 
+interface HistorySnapshot {
+  doc: KmDocumentJson;
+  selectedId: string | null;
+}
+
 interface ClipboardPayload {
   type: typeof CLIPBOARD_MARKER;
   version: number;
@@ -166,8 +171,8 @@ export class MindmapEngine {
   private _version: string = KM_VERSION;
   private seq = 0;
   private _saveExpandState: SaveExpandState = 'preserve';
-  private undoStack: KmDocumentJson[] = [];
-  private redoStack: KmDocumentJson[] = [];
+  private undoStack: HistorySnapshot[] = [];
+  private redoStack: HistorySnapshot[] = [];
   private static readonly MAX_UNDO = 50;
   private static readonly DRAG_START_DISTANCE = 8;
   private static readonly VIEW_PADDING = 80;
@@ -314,7 +319,7 @@ export class MindmapEngine {
   }
 
   async exportImage(options: MindmapImageExportOptions): Promise<MindmapImageExportResult> {
-    const exported = await this.exportSvg(options.backgroundColor);
+    const exported = await this.exportSvg(options.backgroundColor, options.format === 'svg');
     if (options.format === 'svg') {
       return {
         format: 'svg',
@@ -331,7 +336,8 @@ export class MindmapEngine {
   }
 
   private exportSvg(
-    backgroundColor: string | null
+    backgroundColor: string | null,
+    copyStyles: boolean,
   ): Promise<{ svg: string; width: number; height: number }> {
     const viewBox = this.getExportViewBox();
     const width = Math.max(1, Math.ceil(viewBox.width));
@@ -344,7 +350,7 @@ export class MindmapEngine {
           {
             viewBox,
             preserveDimensions: { width, height },
-            copyStyles: true,
+            copyStyles,
             serializeImages: true,
             beforeSerialize: (svg) => {
               prepareExportSvg(svg, viewBox, backgroundColor);
@@ -400,8 +406,7 @@ export class MindmapEngine {
     }
   }
 
-  private importDocumentSilent(doc: KmDocumentJson) {
-    const prevSelectedId = this.selectedId;
+  private importDocumentSilent(doc: KmDocumentJson, preferredSelectedId?: string | null) {
     this._template = (doc.template as TemplateType) || 'default';
     this._theme = doc.theme ?? null;
     this._version = doc.version ?? KM_VERSION;
@@ -410,9 +415,11 @@ export class MindmapEngine {
     this.root = this.fromKm(doc.root);
     this.buildIndices(this.root, null);
     this.render();
+    const candidate =
+      preferredSelectedId !== undefined ? preferredSelectedId : this.selectedId;
     const restoreId =
-      prevSelectedId && this.nodeMap.has(prevSelectedId)
-        ? prevSelectedId
+      candidate && this.nodeMap.has(candidate)
+        ? candidate
         : (this.root?.id ?? null);
     this.selectNode(restoreId);
   }
@@ -901,24 +908,31 @@ export class MindmapEngine {
 
   undo(): boolean {
     if (this.undoStack.length === 0) return false;
-    this.redoStack.push(this.exportDocument());
+    this.redoStack.push(this.createHistorySnapshot());
     const snapshot = this.undoStack.pop()!;
-    this.importDocumentSilent(snapshot);
+    this.importDocumentSilent(snapshot.doc, snapshot.selectedId);
     this.emitChange();
     return true;
   }
 
   redo(): boolean {
     if (this.redoStack.length === 0) return false;
-    this.undoStack.push(this.exportDocument());
+    this.undoStack.push(this.createHistorySnapshot());
     const snapshot = this.redoStack.pop()!;
-    this.importDocumentSilent(snapshot);
+    this.importDocumentSilent(snapshot.doc, snapshot.selectedId);
     this.emitChange();
     return true;
   }
 
+  private createHistorySnapshot(): HistorySnapshot {
+    return {
+      doc: this.exportDocument(),
+      selectedId: this.selectedId,
+    };
+  }
+
   private pushUndo() {
-    this.undoStack.push(this.exportDocument());
+    this.undoStack.push(this.createHistorySnapshot());
     if (this.undoStack.length > MindmapEngine.MAX_UNDO) this.undoStack.shift();
     this.redoStack.length = 0;
   }
@@ -1393,12 +1407,14 @@ export class MindmapEngine {
       indicator.style.width = `${rect.w + 6}px`;
       indicator.style.height = `${rect.h + 6}px`;
     } else {
-      indicator.className = 'km-drop-indicator km-drop-indicator--line';
-      const y = target.type === 'before' ? rect.y - 2 : rect.y + rect.h + 2;
-      indicator.style.left = `${rect.x}px`;
+      const isBefore = target.type === 'before';
+      indicator.className = `km-drop-indicator km-drop-indicator--line km-drop-indicator--line-${target.type}`;
+      const gap = 8;
+      const y = isBefore ? rect.y - gap : rect.y + rect.h + gap;
+      indicator.style.left = `${rect.x - 10}px`;
       indicator.style.top = `${y}px`;
-      indicator.style.width = `${rect.w}px`;
-      indicator.style.height = '3px';
+      indicator.style.width = `${rect.w + 20}px`;
+      indicator.style.height = '';
     }
   }
 
@@ -1994,12 +2010,32 @@ function prepareExportSvg(
   background.setAttribute('data-kityminder-export-background', 'true');
 
   const stage = svg.querySelector('.x6-graph-svg-stage');
-  svg.insertBefore(background, stage ?? svg.firstChild);
+  svg.insertBefore(background, stage?.parentNode === svg ? stage : svg.firstChild);
 }
 
 function svgToPngBase64(svg: string, width: number, height: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
+    const pngSvg = sanitizeSvgForImage(svg);
+    const objectUrl = URL.createObjectURL(new Blob([pngSvg], { type: 'image/svg+xml;charset=utf-8' }));
+    let settled = false;
+    const timeout = window.setTimeout(() => {
+      settle(() => reject(new Error('Timed out rendering SVG export as PNG.')));
+    }, 15_000);
+
+    const cleanup = () => {
+      window.clearTimeout(timeout);
+      URL.revokeObjectURL(objectUrl);
+      img.onload = null;
+      img.onerror = null;
+    };
+    const settle = (finish: () => void) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      finish();
+    };
+
     img.onload = () => {
       const canvas = document.createElement('canvas');
       canvas.width = width;
@@ -2007,7 +2043,7 @@ function svgToPngBase64(svg: string, width: number, height: number): Promise<str
 
       const context = canvas.getContext('2d');
       if (!context) {
-        reject(new Error('Canvas 2D context is not available.'));
+        settle(() => reject(new Error('Canvas 2D context is not available.')));
         return;
       }
 
@@ -2015,12 +2051,32 @@ function svgToPngBase64(svg: string, width: number, height: number): Promise<str
         context.clearRect(0, 0, width, height);
         context.drawImage(img, 0, 0, width, height);
         const dataUrl = canvas.toDataURL('image/png');
-        resolve(dataUrl.replace(/^data:image\/png;base64,/i, ''));
+        settle(() => resolve(dataUrl.replace(/^data:image\/png;base64,/i, '')));
       } catch (error) {
-        reject(error);
+        settle(() => reject(error));
       }
     };
-    img.onerror = () => reject(new Error('Failed to render SVG export as PNG.'));
-    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    img.onerror = () => settle(() => reject(new Error('Failed to render SVG export as PNG.')));
+    img.src = objectUrl;
   });
+}
+
+function sanitizeSvgForImage(svg: string): string {
+  const doc = new DOMParser().parseFromString(svg, 'image/svg+xml');
+  for (const element of Array.from(doc.querySelectorAll('*'))) {
+    for (const attr of Array.from(element.attributes)) {
+      if (
+        attr.name === 'class' ||
+        attr.name === 'cursor' ||
+        attr.name === 'filter' ||
+        attr.name === 'paint-order' ||
+        attr.name === 'pointer-events' ||
+        attr.name === 'text-vertical-anchor' ||
+        attr.name.startsWith('data-')
+      ) {
+        element.removeAttribute(attr.name);
+      }
+    }
+  }
+  return new XMLSerializer().serializeToString(doc.documentElement);
 }

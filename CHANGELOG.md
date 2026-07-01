@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.4 - 2026-07-01
+
+- Add visual-editor export for PNG, SVG, and XMind, including transparent, white, and custom hex image backgrounds
+- Improve search navigation, inline title editing, IME Enter handling, and pinned node panel behavior
+- Preserve node selection across undo/redo operations and add browser regression coverage for history controls
+- Stabilize PNG export rendering and improve drag-and-drop insertion indicators
+
 ## 0.1.3 - 2026-06-19
 
 - Refresh the editor toolbar with grouped node, layout, view, and history controls
