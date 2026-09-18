@@ -65,6 +65,12 @@ KityMinder Neo intentionally does not replace VS Code's normal text and diff exp
 
 ## Keyboard Shortcuts
 
+Node shortcuts apply on the canvas. Text fields keep native text editing keys,
+and focused buttons keep Enter/Space activation and Tab navigation. Shift+Tab
+moves focus backward without adding a node. In search, Enter/Shift+Enter moves
+between results and Escape returns focus to the canvas. Title and note fields
+use the document undo/redo history; search text uses native text undo/redo.
+
 | Shortcut | Action |
 |---|---|
 | `Tab` | Add child node and start editing |
@@ -82,10 +88,14 @@ KityMinder Neo intentionally does not replace VS Code's normal text and diff exp
 | `Ctrl/Cmd+Shift+Z` | Redo |
 | `Ctrl/Cmd+Y` | Redo |
 | `Ctrl/Cmd+F` | Search titles and notes |
-| `Ctrl/Cmd+=` or `Ctrl/Cmd++` | Zoom in |
-| `Ctrl/Cmd+-` | Zoom out |
-| `Ctrl/Cmd+0` | Fit to canvas |
-| `Ctrl/Cmd+1` | Readable view |
+| `=` or `+` | Zoom in |
+| `-` | Zoom out |
+| `0` | Fit to canvas |
+| `1` | Readable view |
+
+Zoom uses bare keys because VS Code owns `Ctrl/Cmd+=`, `-`, `0`, and `1`
+(window zoom and sidebar/editor-group focus); the workbench would otherwise
+zoom the whole UI or steal focus when the canvas handles them.
 
 ## Configuration
 
@@ -118,6 +128,8 @@ Run the main checks:
 
 ```bash
 npm run check
+node scripts/run-webview-keyboard-browser-test.mjs
+node scripts/run-undo-redo-browser-test.mjs
 ```
 
 ## Packaging

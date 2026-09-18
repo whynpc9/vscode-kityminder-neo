@@ -16,7 +16,7 @@ Use [RELEASE_CHECKLIST.md](/Users/wanghongyi/Projects/vscode-kityminder-neo/RELE
 
 3. Regress the mentioned features and fixes.
    - Run `npm run check`; this covers build, Vitest, and `tsc --noEmit`.
-   - When webview history, keyboard handling, drag/drop, or export behavior changed, also run `node scripts/run-undo-redo-browser-test.mjs`.
+   - When webview history, keyboard handling, drag/drop, or export behavior changed, also run `node scripts/run-webview-keyboard-browser-test.mjs` and `node scripts/run-undo-redo-browser-test.mjs`. For keyboard changes, additionally run `node scripts/run-vscode-keyboard-e2e.mjs` (drives a real local VS Code via Playwright; catches workbench/webview shortcut conflicts that browser-only tests cannot see).
    - For export changes, verify PNG/SVG browser export behavior and XMind round-trip coverage. Keep generated harness output such as `test/undoRedo.harness.js` out of source control.
 
 4. Run security checks.

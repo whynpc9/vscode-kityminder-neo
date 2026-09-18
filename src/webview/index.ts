@@ -4,6 +4,7 @@ import { parseKmDocument, stringifyKmDocument } from '../shared/km';
 import type { HostToWebviewMessage, WebviewToHostMessage } from '../shared/protocol';
 import { MindmapEngine, type MindmapNode, type TemplateType, type SearchResult } from './mindmap-engine';
 import { renderSafeMarkdown } from './safeMarkdown';
+import { getHistoryShortcut, isImeCompositionKeyEvent } from './keyboard';
 
 declare const acquireVsCodeApi: () => {
   postMessage(message: WebviewToHostMessage): void;
@@ -40,6 +41,8 @@ class App {
 
   private engine!: MindmapEngine;
   private pendingSync: number | undefined;
+  private formEditTimer: number | undefined;
+  private pendingFormEdits = new Map<'title' | 'note', () => void>();
   private updatingForm = false;
   private hasValidDocument = false;
   private currentSerialized = '';
@@ -57,6 +60,7 @@ class App {
     };
     this.engine.onSelectionChange = (node) => this.refreshSelection(node);
     this.engine.onViewChange = () => this.updateZoomDisplay();
+    this.container.tabIndex = 0;
     this.bindUi();
     window.addEventListener('message', (e: MessageEvent<HostToWebviewMessage>) =>
       this.handleHost(e.data),
@@ -84,8 +88,8 @@ class App {
     this.btn('btn-center', () => this.engine.centerContent());
     this.btn('btn-zoom-readable', () => this.engine.zoomToReadable());
     this.btn('btn-zoom-fit', () => this.engine.zoomToFit());
-    this.btn('btn-undo', () => this.engine.undo());
-    this.btn('btn-redo', () => this.engine.redo());
+    this.btn('btn-undo', () => this.applyHistory('undo'));
+    this.btn('btn-redo', () => this.applyHistory('redo'));
     this.btn('btn-search-prev', () => this.searchPrev());
     this.btn('btn-search-next', () => this.searchNext());
     this.btn('btn-search-close', () => this.closeSearch());
@@ -103,6 +107,9 @@ class App {
       searchTimer = window.setTimeout(() => this.performSearch(), 120);
     });
     this.searchInput.addEventListener('keydown', (e) => {
+      // Keep native text editing keys away from the mindmap shortcuts.
+      e.stopPropagation();
+      if (isImeCompositionKeyEvent(e)) return;
       if (e.key === 'Enter') {
         e.preventDefault();
         if (e.shiftKey) this.searchPrev(); else this.searchNext();
@@ -113,52 +120,83 @@ class App {
     });
 
     window.addEventListener('keydown', (e) => {
+      if (isImeCompositionKeyEvent(e)) return;
+      const target = e.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('.km-edit-input') || this.engine.isEditing()) return;
+
       const mod = e.ctrlKey || e.metaKey;
-      const target = e.target as HTMLElement;
-      const isEditInput = target.classList.contains('km-edit-input');
-      const isPopoverInput =
-        !isEditInput &&
-        (target === this.titleInput ||
-          target === this.noteInput ||
-          this.popover.contains(target));
+      const key = e.key.toLowerCase();
 
-      if (isEditInput) return;
+      // VS Code's webview preload calls preventDefault() on find/undo/save/print
+      // and (on desktop) copy/cut/paste chords before they reach this handler,
+      // routing them through the workbench — which no-ops for this custom editor.
+      // We still own find and canvas clipboard chords, so only respect
+      // `defaultPrevented` for keys outside that set. Undo/redo stay with the
+      // workbench, which performs them as document-level edits.
+      const isPreemptedCanvasChord =
+        mod && !e.altKey && !e.shiftKey && ['f', 'c', 'x', 'v'].includes(key);
+      if (e.defaultPrevented && !isPreemptedCanvasChord) return;
 
-      if (this.engine.isEditing()) return;
+      // With no valid document (error overlay), leave all keys to the page so
+      // Tab navigation and the fallback button stay reachable.
+      if (!this.hasValidDocument) return;
 
+      const history = getHistoryShortcut(e);
+      const isPopoverInput = this.popover.contains(target);
+      const isTextInput = target.closest('input, textarea, select') ||
+        (target instanceof HTMLElement && target.isContentEditable);
+
+      if (mod && !e.altKey && !e.shiftKey && key === 'f') {
+        e.preventDefault(); this.openSearch();
+        return;
+      }
       if (isPopoverInput) {
-        if (mod && e.key === 'z' && !e.shiftKey) { e.preventDefault(); this.engine.undo(); }
-        else if (mod && (e.key === 'Z' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); this.engine.redo(); }
-        else if (mod && e.key === 'y') { e.preventDefault(); this.engine.redo(); }
-        else if (e.key === 'Escape') {
+        if (history) { e.preventDefault(); this.applyHistory(history); }
+        else if (e.key === 'Escape' && !mod && !e.altKey && !e.shiftKey) {
           e.preventDefault();
-          (target as HTMLElement).blur();
+          this.container.focus();
         }
         return;
       }
+      if (isTextInput) return;
 
-      if (mod && e.key === 'f') {
-        e.preventDefault(); this.openSearch();
-      } else if (mod && (e.key === '=' || e.key === '+')) {
-        e.preventDefault(); this.engine.zoomIn();
-      } else if (mod && e.key === '-') {
-        e.preventDefault(); this.engine.zoomOut();
-      } else if (mod && e.key === '1') {
+      if (history) {
+        e.preventDefault(); this.applyHistory(history);
+      } else if (mod && !e.altKey) {
+        if (!e.shiftKey && key === 'c') {
+          e.preventDefault(); void this.engine.copySelected();
+        } else if (!e.shiftKey && key === 'x') {
+          e.preventDefault(); void this.engine.cutSelected();
+        } else if (!e.shiftKey && key === 'v') {
+          e.preventDefault(); void this.engine.pasteAsChild();
+        }
+      } else if (mod) {
+        return;
+      // Zoom uses bare keys: Cmd/Ctrl+=/-/0/1 are owned by the workbench
+      // (window zoom, sidebar/editor-group focus) and would double-fire.
+      } else if (!e.altKey && (key === '=' || key === '+' || key === '-')) {
+        e.preventDefault();
+        if (key === '-') this.engine.zoomOut(); else this.engine.zoomIn();
+      } else if (!e.altKey && !e.shiftKey && key === '1') {
         e.preventDefault(); this.engine.zoomToReadable();
-      } else if (mod && e.key === '0') {
+      } else if (!e.altKey && !e.shiftKey && key === '0') {
         e.preventDefault(); this.engine.zoomToFit();
-      } else if (mod && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault(); this.engine.undo();
-      } else if (mod && (e.key === 'Z' || (e.key === 'z' && e.shiftKey))) {
-        e.preventDefault(); this.engine.redo();
-      } else if (mod && e.key === 'y') {
-        e.preventDefault(); this.engine.redo();
-      } else if (mod && e.key === 'c') {
-        e.preventDefault(); void this.engine.copySelected();
-      } else if (mod && e.key === 'x') {
-        e.preventDefault(); void this.engine.cutSelected();
-      } else if (mod && e.key === 'v') {
-        e.preventDefault(); void this.engine.pasteAsChild();
+      } else if (e.shiftKey) {
+        return;
+      } else if (e.key === 'Escape' && !e.altKey) {
+        if (!this.searchBar.classList.contains('hidden')) {
+          e.preventDefault(); this.closeSearch();
+        } else if (this.engine.getSelectedNode()) {
+          e.preventDefault(); this.closePopover();
+          this.container.focus();
+        }
+      } else if (target.closest('button, a[href], [role="button"], [role="link"]')) {
+        // Let focused controls activate and participate in native Tab navigation.
+        return;
+      } else if (e.altKey) {
+        if (e.key === 'ArrowUp') { e.preventDefault(); this.engine.moveNodeUp(); }
+        else if (e.key === 'ArrowDown') { e.preventDefault(); this.engine.moveNodeDown(); }
       } else if (e.key === 'Tab') {
         e.preventDefault(); this.engine.addChildAndEdit();
       } else if (e.key === 'Enter') {
@@ -167,25 +205,15 @@ class App {
         e.preventDefault(); this.engine.removeSelected();
       } else if (e.key === 'F2') {
         e.preventDefault(); this.engine.startEditing();
-      } else if (e.key === 'Escape') {
-        if (!this.searchBar.classList.contains('hidden')) {
-          e.preventDefault();
-          this.closeSearch();
-        } else if (this.engine.getSelectedNode()) {
-          e.preventDefault();
-          this.closePopover();
-        }
       } else if (e.key === ' ') {
         e.preventDefault(); this.engine.toggleCollapse();
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        if (e.altKey) this.engine.moveNodeUp();
-        else if (this.engine.template === 'structure') this.engine.navigateToParent();
+        if (this.engine.template === 'structure') this.engine.navigateToParent();
         else this.engine.navigateUp();
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
-        if (e.altKey) this.engine.moveNodeDown();
-        else if (this.engine.template === 'structure') this.engine.navigateToChild();
+        if (this.engine.template === 'structure') this.engine.navigateToChild();
         else this.engine.navigateDown();
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
@@ -206,25 +234,24 @@ class App {
       });
     }
 
-    let titleTimer: number | undefined;
     this.titleInput.addEventListener('input', () => {
       if (this.updatingForm) return;
       this.nodeName.textContent = this.titleInput.value.trim() || '（无标题）';
-      window.clearTimeout(titleTimer);
-      titleTimer = window.setTimeout(() => this.engine.updateText(this.titleInput.value), 150);
+      const id = this.selectedNodeId;
+      const value = this.titleInput.value;
+      this.queueFormEdit('title', () => this.engine.updateText(value, id));
     });
 
-    let noteTimer: number | undefined;
     this.noteInput.addEventListener('input', () => {
       this.updateNoteStats();
       if (this.noteTab === 'preview') this.renderNotePreview();
       if (this.updatingForm) return;
-      window.clearTimeout(noteTimer);
-      noteTimer = window.setTimeout(() => {
-        const v = this.noteInput.value.trim();
-        this.engine.updateNote(v.length > 0 ? this.noteInput.value : null);
-      }, 150);
+      const id = this.selectedNodeId;
+      const value = this.noteInput.value;
+      this.queueFormEdit('note', () => this.engine.updateNote(value.trim() ? value : null, id));
     });
+    this.titleInput.addEventListener('blur', () => this.flushFormEdits());
+    this.noteInput.addEventListener('blur', () => this.flushFormEdits());
 
     this.noteTabs.addEventListener('click', (e) => {
       const t = (e.target as HTMLElement).closest('.md-tab') as HTMLElement | null;
@@ -236,6 +263,24 @@ class App {
       const b = (e.target as HTMLElement).closest('.md-btn') as HTMLElement | null;
       if (b?.dataset.md) this.applyMarkdown(b.dataset.md);
     });
+  }
+
+  private queueFormEdit(field: 'title' | 'note', apply: () => void) {
+    this.pendingFormEdits.set(field, apply);
+    window.clearTimeout(this.formEditTimer);
+    this.formEditTimer = window.setTimeout(() => this.flushFormEdits(), 150);
+  }
+
+  private flushFormEdits() {
+    window.clearTimeout(this.formEditTimer);
+    const edits = [...this.pendingFormEdits.values()];
+    this.pendingFormEdits.clear();
+    for (const apply of edits) apply();
+  }
+
+  private applyHistory(action: 'undo' | 'redo') {
+    this.flushFormEdits();
+    this.engine[action]();
   }
 
   // ── Expand-level segmented control ──────────────────────────────
@@ -362,6 +407,7 @@ class App {
   }
 
   private loadDocument(text: string) {
+    this.flushFormEdits();
     try {
       const doc = parseKmDocument(text);
       const normalized = stringifyKmDocument(doc);
@@ -381,6 +427,7 @@ class App {
   // ── Selection state ─────────────────────────────────────────────
 
   private refreshSelection(node: MindmapNode | null) {
+    this.flushFormEdits();
     if (node?.id !== this.selectedNodeId) {
       this.selectedNodeId = node?.id ?? null;
     }
@@ -600,11 +647,13 @@ class App {
   }
 
   private closeSearch() {
+    const hadFocus = this.searchBar.contains(document.activeElement);
     this.searchBar.classList.add('hidden');
     this.searchInput.value = '';
     this.searchCount.textContent = '';
     this.engine.clearSearch();
     this.clearNoteHighlight();
+    if (hadFocus) this.container.focus();
   }
 
   private performSearch() {
@@ -667,14 +716,12 @@ class App {
     const pos = note.toLowerCase().indexOf(q);
     if (pos < 0) { this.clearNoteHighlight(); return; }
 
-    this.noteInput.focus();
+    // Highlight without moving typing focus out of search (or a search button).
     this.noteInput.setSelectionRange(pos, pos + q.length);
 
     const lineHeight = 18;
     const approxLine = note.slice(0, pos).split('\n').length - 1;
     this.noteInput.scrollTop = Math.max(0, approxLine * lineHeight - 30);
-
-    setTimeout(() => this.searchInput.focus(), 80);
   }
 
   private clearNoteHighlight() {

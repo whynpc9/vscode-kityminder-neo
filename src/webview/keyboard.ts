@@ -4,6 +4,16 @@ type InlineEditNativeShortcutEventLike = Pick<
   'altKey' | 'ctrlKey' | 'key' | 'metaKey'
 >;
 
+export function getHistoryShortcut(
+  event: Pick<KeyboardEvent, 'key' | 'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey'>,
+): 'undo' | 'redo' | null {
+  if (!(event.ctrlKey || event.metaKey) || event.altKey) return null;
+  const key = event.key.toLowerCase();
+  if (key === 'z') return event.shiftKey ? 'redo' : 'undo';
+  if (key === 'y' && !event.shiftKey) return 'redo';
+  return null;
+}
+
 export function isImeCompositionKeyEvent(event: KeyboardCompositionEventLike): boolean {
   return event.isComposing || event.keyCode === 229;
 }

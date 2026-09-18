@@ -421,7 +421,8 @@ export class MindmapEngine {
       candidate && this.nodeMap.has(candidate)
         ? candidate
         : (this.root?.id ?? null);
-    this.selectNode(restoreId);
+    // Restoring history replaces node objects even when selection keeps its ID.
+    this.selectNode(restoreId, true);
   }
 
   // ── Node operations ───────────────────────────────────────────────
@@ -488,18 +489,18 @@ export class MindmapEngine {
     this.emitChange();
   }
 
-  updateText(text: string) {
-    const cur = this.getSelectedNode();
-    if (!cur) return;
+  updateText(text: string, nodeId = this.selectedId) {
+    const cur = nodeId ? this.nodeMap.get(nodeId) : undefined;
+    if (!cur || cur.text === text) return;
     this.pushUndo();
     cur.text = text;
     this.render();
     this.emitChange();
   }
 
-  updateNote(note: string | null) {
-    const cur = this.getSelectedNode();
-    if (!cur) return;
+  updateNote(note: string | null, nodeId = this.selectedId) {
+    const cur = nodeId ? this.nodeMap.get(nodeId) : undefined;
+    if (!cur || cur.note === note) return;
     this.pushUndo();
     cur.note = note;
     this.render();
@@ -629,7 +630,7 @@ export class MindmapEngine {
       this.pushUndo();
       node.text = newText;
       this.render();
-      this.selectNode(id);
+      this.selectNode(id, true);
       this.emitChange();
     }
   }
@@ -685,15 +686,15 @@ export class MindmapEngine {
       return;
     }
 
-    if (e.key === 'Escape') {
+    if (e.key === 'Escape' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
       e.preventDefault();
       e.stopPropagation();
       this.cancelEdit();
-    } else if (e.key === 'Enter' && !e.shiftKey) {
+    } else if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
       e.preventDefault();
       e.stopPropagation();
       this.commitEdit();
-    } else if (e.key === 'Tab') {
+    } else if (e.key === 'Tab' && !e.shiftKey && !e.ctrlKey && !e.metaKey && !e.altKey) {
       e.preventDefault();
       e.stopPropagation();
       const inputVal = this._editInput?.value.trim() || this._editOrigText;
@@ -939,8 +940,8 @@ export class MindmapEngine {
 
   // ── Selection ─────────────────────────────────────────────────────
 
-  selectNode(id: string | null) {
-    if (this.selectedId === id) return;
+  selectNode(id: string | null, refresh = false) {
+    if (this.selectedId === id && !refresh) return;
     this.selectedId = id;
     this.applySelectionVisual();
     this.onSelectionChange?.(this.getSelectedNode());
@@ -1514,6 +1515,7 @@ export class MindmapEngine {
         this.commitEdit();
       }
       this.selectNode(node.id);
+      if (!this._editingId) this._container.focus({ preventScroll: true });
     });
 
     this.graph.on('node:dblclick', ({ node }: any) => {
