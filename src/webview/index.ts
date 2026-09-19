@@ -35,6 +35,13 @@ class App {
   private readonly searchBar = this.el<HTMLDivElement>('search-bar');
   private readonly searchInput = this.el<HTMLInputElement>('search-input');
   private readonly searchCount = this.el<HTMLSpanElement>('search-count');
+  private readonly toolbarNav = document.querySelector<HTMLElement>('.top-bar-toolbar')!;
+  private readonly toolbarMoreBtn = this.el<HTMLButtonElement>('btn-toolbar-more');
+  private readonly toolbarMenu = this.el<HTMLDivElement>('toolbar-menu');
+  private readonly toolbarMenuDynamic = this.el<HTMLDivElement>('toolbar-menu-dynamic');
+  private readonly toolbarSlots = Array.from(
+    document.querySelectorAll<HTMLElement>('.top-bar-toolbar .toolbar-slot'),
+  );
   private readonly templateButtons = Array.from(
     document.querySelectorAll<HTMLButtonElement>('.tpl-btn'),
   );
@@ -47,6 +54,8 @@ class App {
   private hasValidDocument = false;
   private currentSerialized = '';
   private popoverPinned = false;
+  private toolbarMenuOpen = false;
+  private readonly narrowMq = window.matchMedia('(max-width: 900px)');
   private selectedNodeId: string | null = null;
   private filePath = '';
   private noteTab: 'edit' | 'preview' = 'edit';
@@ -62,6 +71,10 @@ class App {
     this.engine.onViewChange = () => this.updateZoomDisplay();
     this.container.tabIndex = 0;
     this.bindUi();
+    this.setupToolbarOverflow();
+    this.narrowMq.addEventListener('change', () => {
+      this.syncPinnedLayout(!this.popover.hidden);
+    });
     window.addEventListener('message', (e: MessageEvent<HostToWebviewMessage>) =>
       this.handleHost(e.data),
     );
@@ -185,7 +198,11 @@ class App {
       } else if (e.shiftKey) {
         return;
       } else if (e.key === 'Escape' && !e.altKey) {
-        if (!this.searchBar.classList.contains('hidden')) {
+        if (this.toolbarMenuOpen) {
+          e.preventDefault();
+          this.setToolbarMenuOpen(false);
+          this.toolbarMoreBtn.focus();
+        } else if (!this.searchBar.classList.contains('hidden')) {
           e.preventDefault(); this.closeSearch();
         } else if (this.engine.getSelectedNode()) {
           e.preventDefault(); this.closePopover();
@@ -289,6 +306,64 @@ class App {
     for (const el of this.segLevel.querySelectorAll<HTMLElement>('.seg-item[data-level]')) {
       el.classList.toggle('active', level !== null && el.dataset.level === level);
     }
+  }
+
+  // ── Toolbar overflow menu ───────────────────────────────────────
+
+  private setupToolbarOverflow() {
+    const topBar = this.toolbarNav.closest('.top-bar');
+    if (topBar) {
+      new ResizeObserver(() => this.layoutToolbar()).observe(topBar);
+    }
+    this.layoutToolbar();
+
+    this.toolbarMoreBtn.addEventListener('click', () =>
+      this.setToolbarMenuOpen(!this.toolbarMenuOpen),
+    );
+    // Capture phase so clicks inside the popover (which stops propagation)
+    // still dismiss the menu.
+    document.addEventListener('mousedown', (e) => {
+      if (!this.toolbarMenuOpen) return;
+      const t = e.target;
+      if (
+        t instanceof Node &&
+        !this.toolbarMenu.contains(t) &&
+        !this.toolbarMoreBtn.contains(t)
+      ) {
+        this.setToolbarMenuOpen(false);
+      }
+    }, true);
+    this.toolbarMenu.addEventListener('click', (e) => {
+      // Menus close after the chosen action runs (this bubbles up last).
+      const b = (e.target as HTMLElement).closest('button');
+      if (b && b !== this.toolbarMoreBtn) this.setToolbarMenuOpen(false);
+    });
+  }
+
+  private setToolbarMenuOpen(open: boolean) {
+    this.toolbarMenuOpen = open;
+    this.toolbarMenu.classList.toggle('hidden', !open);
+    this.toolbarMoreBtn.classList.toggle('active', open);
+    this.toolbarMoreBtn.setAttribute('aria-expanded', String(open));
+  }
+
+  /** Keeps as many toolbar groups visible as fit; moves the rest into the ⋯ menu. */
+  private layoutToolbar() {
+    for (const slot of this.toolbarSlots) this.toolbarNav.appendChild(slot);
+    const available = this.toolbarNav.clientWidth;
+    let used = 0;
+    let fitCount = this.toolbarSlots.length;
+    for (let i = 0; i < this.toolbarSlots.length; i++) {
+      used += this.toolbarSlots[i].offsetWidth + 2;
+      if (used > available) {
+        fitCount = i;
+        break;
+      }
+    }
+    for (let i = fitCount; i < this.toolbarSlots.length; i++) {
+      this.toolbarMenuDynamic.appendChild(this.toolbarSlots[i]);
+    }
+    this.toolbarMoreBtn.classList.toggle('has-items', fitCount < this.toolbarSlots.length);
   }
 
   // ── Markdown note editor ────────────────────────────────────────
@@ -496,10 +571,12 @@ class App {
   }
 
   private syncPinnedLayout(isVisible: boolean) {
-    const isPinnedVisible = this.popoverPinned && isVisible;
-    this.popover.classList.toggle('is-pinned', isPinnedVisible);
-    this.canvasArea.classList.toggle('is-popover-pinned', isPinnedVisible);
-    this.popoverPinBtn.classList.toggle('active', isPinnedVisible);
+    // On narrow viewports the floating popover would cover too much of the
+    // canvas, so it always docks (as a bottom sheet via the media query).
+    const docked = (this.popoverPinned || this.narrowMq.matches) && isVisible;
+    this.popover.classList.toggle('is-pinned', docked);
+    this.canvasArea.classList.toggle('is-popover-pinned', docked);
+    this.popoverPinBtn.classList.toggle('active', docked);
     this.popoverPinBtn.title = this.popoverPinned ? '取消固定' : '固定面板';
     this.popover.style.left = '';
     this.popover.style.top = '';
@@ -641,6 +718,7 @@ class App {
   // ── Search ─────────────────────────────────────────────────────
 
   private openSearch() {
+    this.setToolbarMenuOpen(false);
     this.searchBar.classList.remove('hidden');
     this.searchInput.focus();
     this.searchInput.select();

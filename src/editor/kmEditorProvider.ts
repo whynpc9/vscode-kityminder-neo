@@ -198,66 +198,82 @@ export class KmEditorProvider implements vscode.CustomTextEditorProvider {
         </div>
         <div class="toolbar-divider top-bar-divider" aria-hidden="true"></div>
         <nav class="top-bar-toolbar" aria-label="编辑器工具栏">
-        <div class="toolbar-group">
-          <span class="toolbar-label">节点</span>
-          <div class="toolbar-group-row">
-            <button id="btn-add-child" class="btn icon-btn" title="添加子节点 (Tab)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
-            <button id="btn-add-sibling" class="btn icon-btn" title="添加同级节点 (Enter)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></svg></button>
-            <button id="btn-add-parent" class="btn icon-btn" title="添加父节点"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg></button>
-            <button id="btn-delete" class="btn danger icon-btn" title="删除节点 (Delete)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
-          </div>
-        </div>
-        <div class="toolbar-divider"></div>
-        <div class="toolbar-group">
-          <span class="toolbar-label">展开层级</span>
-          <div class="toolbar-group-row">
-            <button id="btn-expand" class="btn icon-btn" title="展开选中节点"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></button>
-            <button id="btn-collapse" class="btn icon-btn" title="收起选中节点"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 20 5-5 5 5"/><path d="m7 4 5 5 5-5"/></svg></button>
-            <div class="seg" id="seg-level" role="group" aria-label="展开到层级">
-              <button id="btn-level-1" class="seg-item" data-level="1" title="展开到一级">1</button>
-              <button id="btn-level-2" class="seg-item" data-level="2" title="展开到二级">2</button>
-              <button id="btn-level-3" class="seg-item" data-level="3" title="展开到三级">3</button>
-              <button id="btn-expand-all" class="seg-item" data-level="all" title="全部展开">全部</button>
+        <div class="toolbar-slot">
+          <div class="toolbar-group">
+            <span class="toolbar-label">节点</span>
+            <div class="toolbar-group-row">
+              <button id="btn-add-child" class="btn icon-btn" title="添加子节点 (Tab)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
+              <button id="btn-add-sibling" class="btn icon-btn" title="添加同级节点 (Enter)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12H3"/><path d="M16 6H3"/><path d="M16 18H3"/><path d="M18 9v6"/><path d="M21 12h-6"/></svg></button>
+              <button id="btn-delete" class="btn danger icon-btn" title="删除节点 (Delete)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg></button>
             </div>
           </div>
         </div>
-        <div class="toolbar-divider"></div>
-        <div class="toolbar-group">
-          <span class="toolbar-label">布局</span>
-          <div class="toolbar-group-row">
-            <div class="seg seg-layout" id="seg-layout" role="group" aria-label="布局模式">
-              <button class="seg-item tpl-btn" data-template="default" title="思维导图"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 12h4M11 12 17 6M11 12l6 6"/></svg>脑图</button>
-              <button class="seg-item tpl-btn" data-template="right" title="向右展开"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h6M9 7v10M9 9h7M9 15h7"/></svg>右展</button>
-              <button class="seg-item tpl-btn" data-template="structure" title="组织结构图"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-2h12v2"/></svg>组织</button>
+        <div class="toolbar-slot">
+          <div class="toolbar-divider" aria-hidden="true"></div>
+          <div class="toolbar-group">
+            <span class="toolbar-label">展开层级</span>
+            <div class="toolbar-group-row">
+              <button id="btn-expand" class="btn icon-btn" title="展开选中节点"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"/><path d="m7 9 5-5 5 5"/></svg></button>
+              <button id="btn-collapse" class="btn icon-btn" title="收起选中节点"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 20 5-5 5 5"/><path d="m7 4 5 5 5-5"/></svg></button>
+              <div class="seg" id="seg-level" role="group" aria-label="展开到层级">
+                <button id="btn-level-1" class="seg-item" data-level="1" title="展开到一级">1</button>
+                <button id="btn-level-2" class="seg-item" data-level="2" title="展开到二级">2</button>
+                <button id="btn-level-3" class="seg-item" data-level="3" title="展开到三级">3</button>
+                <button id="btn-expand-all" class="seg-item" data-level="all" title="全部展开">全部</button>
+              </div>
             </div>
-            <button id="btn-reset-layout" class="btn icon-btn" title="整理布局"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></button>
           </div>
         </div>
-        <div class="toolbar-divider"></div>
-        <div class="toolbar-group">
-          <span class="toolbar-label">视图</span>
-          <div class="toolbar-group-row">
-            <div class="stepper">
-              <button id="btn-zoom-out" title="缩小 (-)"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg></button>
-              <button id="btn-zoom-value" class="zoom-val" title="可读视图 (1)">100%</button>
-              <button id="btn-zoom-in" title="放大 (+)"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        <div class="toolbar-slot">
+          <div class="toolbar-divider" aria-hidden="true"></div>
+          <div class="toolbar-group">
+            <span class="toolbar-label">布局</span>
+            <div class="toolbar-group-row">
+              <div class="seg seg-layout" id="seg-layout" role="group" aria-label="布局模式">
+                <button class="seg-item tpl-btn" data-template="default" title="思维导图"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 12h4M11 12 17 6M11 12l6 6"/></svg>脑图</button>
+                <button class="seg-item tpl-btn" data-template="right" title="向右展开"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h6M9 7v10M9 9h7M9 15h7"/></svg>右展</button>
+                <button class="seg-item tpl-btn" data-template="structure" title="组织结构图"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="3" y="16" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M6 16v-2h12v2"/></svg>组织</button>
+              </div>
             </div>
-            <button id="btn-zoom-fit" class="btn icon-btn" title="适应画布 (0)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
-            <button id="btn-center" class="btn icon-btn" title="居中"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/></svg></button>
           </div>
         </div>
-        <div class="toolbar-divider"></div>
-        <div class="toolbar-group">
-          <span class="toolbar-label">历史</span>
-          <div class="toolbar-group-row">
-            <button id="btn-undo" class="btn icon-btn" title="撤销 (Ctrl+Z)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></svg></button>
-            <button id="btn-redo" class="btn icon-btn" title="重做 (Ctrl+Shift+Z)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"/></svg></button>
+        <div class="toolbar-slot">
+          <div class="toolbar-divider" aria-hidden="true"></div>
+          <div class="toolbar-group">
+            <span class="toolbar-label">视图</span>
+            <div class="toolbar-group-row">
+              <div class="stepper">
+                <button id="btn-zoom-out" title="缩小 (-)"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg></button>
+                <button id="btn-zoom-value" class="zoom-val" title="可读视图 (1)">100%</button>
+                <button id="btn-zoom-in" title="放大 (+)"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+              </div>
+              <button id="btn-zoom-fit" class="btn icon-btn" title="适应画布 (0)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+              <button id="btn-center" class="btn icon-btn" title="居中"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M2 12h4"/><path d="M18 12h4"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="toolbar-slot">
+          <div class="toolbar-divider" aria-hidden="true"></div>
+          <div class="toolbar-group">
+            <span class="toolbar-label">历史</span>
+            <div class="toolbar-group-row">
+              <button id="btn-undo" class="btn icon-btn" title="撤销 (Ctrl+Z)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></svg></button>
+              <button id="btn-redo" class="btn icon-btn" title="重做 (Ctrl+Shift+Z)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"/></svg></button>
+            </div>
           </div>
         </div>
         </nav>
         <div class="top-bar-actions">
-          <button id="btn-export-image" class="btn icon-btn" title="导出"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></button>
-          <button id="btn-open-source" class="btn icon-btn" title="源码 JSON"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg></button>
+          <button id="btn-toolbar-more" class="btn icon-btn" title="更多操作" aria-haspopup="true" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+          <div id="toolbar-menu" class="toolbar-menu hidden" role="menu" aria-label="更多操作">
+            <div id="toolbar-menu-dynamic" class="toolbar-menu-dynamic"></div>
+            <div class="toolbar-menu-static">
+              <button id="btn-add-parent" class="btn menu-item" title="添加父节点"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg><span>添加父节点</span></button>
+              <button id="btn-reset-layout" class="btn menu-item" title="整理布局"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg><span>整理布局</span></button>
+              <button id="btn-export-image" class="btn menu-item" title="导出"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg><span>导出…</span></button>
+              <button id="btn-open-source" class="btn menu-item" title="源码 JSON"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg><span>源码 JSON</span></button>
+            </div>
+          </div>
         </div>
       </header>
 

@@ -86,9 +86,9 @@ textarea {
 .top-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 52px;
-  padding: 0 12px;
+  gap: 8px;
+  height: 40px;
+  padding: 0 10px;
   background: var(--cl-ivory);
   border-bottom: 1px solid var(--cl-border-cream);
   flex-shrink: 0;
@@ -124,11 +124,12 @@ textarea {
 }
 
 .top-bar-actions {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
-  margin-left: 4px;
+  margin-left: 2px;
 }
 
 .logo {
@@ -159,6 +160,13 @@ textarea {
 
 /* ── Toolbar groups (inside top bar) ─────────────────────────────── */
 
+.toolbar-slot {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
 .toolbar-group {
   display: flex;
   flex-direction: column;
@@ -170,6 +178,11 @@ textarea {
   display: flex;
   align-items: center;
   gap: 3px;
+}
+
+/* Group labels only appear as section headers inside the overflow menu. */
+.top-bar-toolbar .toolbar-label {
+  display: none;
 }
 
 .toolbar-label {
@@ -185,10 +198,95 @@ textarea {
 
 .toolbar-divider {
   width: 1px;
-  height: 30px;
+  height: 18px;
   background: var(--cl-border-warm);
   margin: 0 5px;
   flex-shrink: 0;
+}
+
+/* ── Toolbar overflow menu ───────────────────────────────────────── */
+.toolbar-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 200;
+  min-width: 216px;
+  max-width: 280px;
+  max-height: calc(100vh - 96px);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px;
+  background: var(--cl-ivory);
+  border: 1px solid var(--cl-border-cream);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-whisper), 0 8px 32px rgba(20, 20, 19, 0.12);
+}
+
+.toolbar-menu.hidden {
+  display: none;
+}
+
+.toolbar-menu-dynamic {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toolbar-menu-dynamic:not(:empty) {
+  padding: 4px 2px 8px;
+  margin-bottom: 3px;
+  border-bottom: 1px solid var(--cl-border-cream);
+}
+
+.toolbar-menu .toolbar-slot {
+  display: block;
+}
+
+.toolbar-menu .toolbar-divider {
+  display: none;
+}
+
+.toolbar-menu .toolbar-label {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.toolbar-menu .toolbar-group-row {
+  flex-wrap: wrap;
+}
+
+.toolbar-menu-static {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.menu-item {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 8px;
+}
+
+.menu-item svg {
+  flex-shrink: 0;
+}
+
+#btn-toolbar-more.has-items::after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--cl-coral);
+}
+
+#btn-toolbar-more {
+  position: relative;
 }
 
 /* ── Segmented control ─────────────────────────────────────────── */
@@ -249,7 +347,7 @@ textarea {
 .stepper {
   display: inline-flex;
   align-items: center;
-  height: 30px;
+  height: 28px;
   background: var(--cl-parchment);
   border: 1px solid var(--cl-border-warm);
   border-radius: var(--radius-md);
@@ -1278,7 +1376,7 @@ textarea {
 }
 
 /* ── Responsive ────────────────────────────────────────────────────── */
-@media (max-width: 800px) {
+@media (max-width: 900px) {
   .top-bar-brand {
     max-width: min(180px, 36vw);
   }
@@ -1338,9 +1436,5 @@ textarea {
   .node-popover.is-pinned .node-popover-panel {
     border-left: none;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  }
-
-  .toolbar-label {
-    display: none;
   }
 }
